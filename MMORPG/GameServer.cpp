@@ -75,7 +75,7 @@ void GameServer :: Update() {
 
 // ------------------------------------------------------------------------------------------------
 void GameServer :: Draw() {
-    DrawChatLog();
+
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -461,27 +461,13 @@ void GameServer :: SendWorldUpdate(int to) {
 // ------------------------------------------------------------------------------------------------
 void GameServer :: SendLevelData(int to) {
 
-    Uint8 data[PACKET_LEVEL_DATA_LENGTH];
-    memcpy(&data[0], &PACKET_LEVEL_DATA, 1 );
-
-    memcpy(&data[PACKET_LEVEL_DATA_SEQUENCE_NUM], &players[to].localSequenceNum,4 );
-
-    Uint32 dataWritePos = WriteLevelDataToPacket(data);
-
-    SendDataAsPacket(to, (char*)data, dataWritePos);
-
-
-//	Uint8 data[PACKET_LEVEL_DATA_LENGTH];
-    //memcpy(&data[0], &PACKET_LEVEL_DATA, 1 );
-    //SendDataAsPacket(to, (char*)data, PACKET_LEVEL_DATA_LENGTH);
-
 } // ----------------------------------------------------------------------------------------------
 
 
 // ------------------------------------------------------------------------------------------------
 void GameServer :: SendSpawn(int to, int about) {
-    Uint32 posX = GetPlayerCharacter(about)->Pos().x;
-    Uint32 posY = GetPlayerCharacter(about)->Pos().y;
+    Uint32 posX = GetPlayerCharacter(about)->Pos().X;
+    Uint32 posY = GetPlayerCharacter(about)->Pos().Y;
 
     char data[PACKET_SPAWN_LENGTH];
     memcpy(&data[0], &PACKET_SPAWN, 1);

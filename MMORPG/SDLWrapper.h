@@ -24,6 +24,7 @@ void 						CloseSDL();
 void						SetWindowSize(Uint32 sizeX, Uint32 sizeY);
 
 // Graphics Methods:
+/*
 SDL_Surface* 				LoadSurface(const char* file_name);
 SDL_Surface* 				LoadSurface(std::string file_name);
 void 						FreeSurface(SDL_Surface* image);
@@ -31,6 +32,7 @@ void 						FreeSurface(SDL_Surface* image);
 void 						DrawSurface(int x, int y, SDL_Surface* source);
 void 						DrawText(int x, int y, const char* s);
 void 						DrawText(int x, int y, std::string s);
+*/
 void 						RenderScreen();
 
 std::string 				ToString(Sint32 i);

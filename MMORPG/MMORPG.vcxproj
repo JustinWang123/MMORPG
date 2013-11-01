@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Button.cpp" />
     <ClCompile Include="CharacterAction.cpp" />
     <ClCompile Include="CharacterActionCondition.cpp" />
     <ClCompile Include="CharacterActionEffect.cpp" />
@@ -29,13 +28,12 @@
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerCharacter.cpp" />
+    <ClCompile Include="PlayerCharacterView.cpp" />
     <ClCompile Include="ProjectileBase.cpp" />
     <ClCompile Include="SDLWrapper.cpp" />
-    <ClCompile Include="ToggleButton.cpp" />
-    <ClCompile Include="Vector2df.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Button.h" />
+    <ClInclude Include="BaseView.h" />
     <ClInclude Include="CharacterAction.h" />
     <ClInclude Include="CharacterActionCondition.h" />
     <ClInclude Include="CharacterActionEffect.h" />
@@ -54,10 +52,9 @@
     <ClInclude Include="PacketProtocol.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCharacter.h" />
+    <ClInclude Include="PlayerCharacterView.h" />
     <ClInclude Include="ProjectileBase.h" />
     <ClInclude Include="SDLWrapper.h" />
-    <ClInclude Include="ToggleButton.h" />
-    <ClInclude Include="Vector2df.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7CDD9540-6044-42B1-83B8-F452177FE870}</ProjectGuid>

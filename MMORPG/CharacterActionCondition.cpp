@@ -1,5 +1,4 @@
 #include "CharacterActionCondition.h"
-#include "Vector2df.h"
 #include "PlayerCharacter.h"
 #include "GameBase.h"
 
@@ -30,5 +29,5 @@ TargetInRangeCondition :: TargetInRangeCondition(GameBase* setGame)
 
 // ------------------------------------------------------------------------------------------------
 bool TargetInRangeCondition :: Evaluate(PlayerCharacter* actor) {
-	return (actor->Pos() - Game()->GetCharacter(actor->TargetId())->Pos()).Length() < 100;
+	return actor->Pos().getDistanceFrom(Game()->GetCharacter(actor->TargetId())->Pos()) < 5;
 } // ----------------------------------------------------------------------------------------------

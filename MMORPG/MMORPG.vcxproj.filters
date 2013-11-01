@@ -1,18 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Entity">
       <UniqueIdentifier>{4a69212a-5818-4eeb-a145-8c363978d8cd}</UniqueIdentifier>
     </Filter>
@@ -28,22 +16,40 @@
     <Filter Include="GUI">
       <UniqueIdentifier>{01c88b4a-f262-4379-a15d-109fb60a2629}</UniqueIdentifier>
     </Filter>
+    <Filter Include="etc">
+      <UniqueIdentifier>{1766f13e-a0df-4410-8475-3a90b9c56778}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="etc\Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="etc\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="etc\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Entity\Views">
+      <UniqueIdentifier>{9b13ca48-c08b-4159-b53a-793fe311484a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Entity\Controllers">
+      <UniqueIdentifier>{09623f54-14cd-49ea-a5f6-94f3e3cb9db6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Irr_Wrapper.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDLWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector2df.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CharacterAction.cpp">
       <Filter>Entity\Character</Filter>
@@ -52,12 +58,6 @@
       <Filter>Entity\Character</Filter>
     </ClCompile>
     <ClCompile Include="CharacterActionEffect.cpp">
-      <Filter>Entity\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterController.cpp">
-      <Filter>Entity\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterControllerClient.cpp">
       <Filter>Entity\Character</Filter>
     </ClCompile>
     <ClCompile Include="EntityBase.cpp">
@@ -75,9 +75,6 @@
     <ClCompile Include="GameServer.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Event.cpp">
       <Filter>Entity\Projectile</Filter>
     </ClCompile>
@@ -93,28 +90,28 @@
     <ClCompile Include="ProjectileBase.cpp">
       <Filter>Entity\Projectile</Filter>
     </ClCompile>
-    <ClCompile Include="ToggleButton.cpp">
-      <Filter>GUI</Filter>
+    <ClCompile Include="CharacterControllerClient.cpp">
+      <Filter>Entity\Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterController.cpp">
+      <Filter>Entity\Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerCharacterView.cpp">
+      <Filter>Entity\Views</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Irr_Wrapper.hpp">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClInclude>
     <ClInclude Include="PacketProtocol.h">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
-      <Filter>Source Files</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClInclude>
     <ClInclude Include="SDLWrapper.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector2df.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterControllerClient.h">
-      <Filter>Entity\Character</Filter>
+      <Filter>etc\Source Files</Filter>
     </ClInclude>
     <ClInclude Include="CharacterAction.h">
       <Filter>Entity\Character</Filter>
@@ -123,9 +120,6 @@
       <Filter>Entity\Character</Filter>
     </ClInclude>
     <ClInclude Include="CharacterActionEffect.h">
-      <Filter>Entity\Character</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterController.h">
       <Filter>Entity\Character</Filter>
     </ClInclude>
     <ClInclude Include="EntityBase.h">
@@ -143,9 +137,6 @@
     <ClInclude Include="GameEditor.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Event.h">
       <Filter>Entity\Projectile</Filter>
     </ClInclude>
@@ -161,11 +152,20 @@
     <ClInclude Include="ProjectileBase.h">
       <Filter>Entity\Projectile</Filter>
     </ClInclude>
-    <ClInclude Include="ToggleButton.h">
+    <ClInclude Include="GUI.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CharacterControllerClient.h">
+      <Filter>Entity\Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterController.h">
+      <Filter>Entity\Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseView.h">
+      <Filter>Entity\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerCharacterView.h">
+      <Filter>Entity\Views</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

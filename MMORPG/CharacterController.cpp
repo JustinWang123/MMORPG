@@ -3,8 +3,8 @@
 #include "GameBase.h"
 
 CharacterController :: CharacterController(PlayerCharacter* setCharacter)
-	:	moveHeading(0, 0),
-		aimHeading(0, 0),
+	:	moveHeading(0, 0, 0),
+		aimHeading(0, 0, 0),
 		doAction1(false),
 		doAction2(false),
 		doAction3(false),
@@ -31,11 +31,11 @@ void CharacterController :: SetState(CharacterController* setState) {
 	doAction3 = setState->DoAction3();
 }
 
-Vector2df CharacterController :: MoveHeading() const {
+vector3df CharacterController :: MoveHeading() const {
 	return moveHeading;
 }
 
-Vector2df CharacterController :: AimHeading() const {
+vector3df CharacterController :: AimHeading() const {
 	return aimHeading;
 }
 

@@ -63,7 +63,7 @@ SteerTowardsClosestCharEvent :: SteerTowardsClosestCharEvent(GameBase* setGame)
 
 void SteerTowardsClosestCharEvent :: Process(ProjectileBase* subject) {
 	if(subject->Life() < MINE_ACTIVATION_TIME) {
-		Vector2df closestCharPos = Game()->GetClosestCharPos(subject->Pos());
+		vector3df closestCharPos = Game()->GetClosestCharPos(subject->Pos());
 		subject->SetHeading(closestCharPos - subject->Pos());
 		subject->SetIsMoving(true);
 	}

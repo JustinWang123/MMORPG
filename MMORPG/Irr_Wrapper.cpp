@@ -124,6 +124,9 @@ float IrrWrapValue(float angle) {
 MyEventReceiver :: MyEventReceiver() {
 	for (u32 i = 0; i < KEY_KEY_CODES_COUNT; ++i)
 	 	keyIsDown[i] = false;
+
+	for (u32 i = 0; i < MAX_BUTTONS; ++i)
+	 	guiButtonClicked[i] = false;
 } // ----------------------------------------------------------------------------------------------
 
 

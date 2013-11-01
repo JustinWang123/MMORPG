@@ -11,17 +11,13 @@
 // ------------------------------------------------------------------------------------------------
 PlayerCharacter :: PlayerCharacter(Uint32 setId, GameBase* setGame, CharacterType* setType)
     :	EntityBase(setId, setGame),
-        vel(0,0),
+        vel(0, 0, 0),
         acc(setType->acc),
         maxSpeed(setType->maxSpeed),
 		attackDelay(0),
 		targetId(INVALID_ID) {
 	type = setType;
     SetHealth(type->maxHealth);
-    numOfBullets = NUM_OF_STARTING_BULLETS;
-    numOfMissiles = 0;
-    numOfMines = 0;
-    score = 0;
 	controller = 0;
 	sceneNode = sceneManager->addCubeSceneNode(1.0f, 0, -1, vector3df(0,0,0));
 	sceneNode->setMaterialFlag(EMF_LIGHTING, true);
@@ -39,18 +35,15 @@ PlayerCharacter :: ~PlayerCharacter() {
 
 
 // ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: Spawn(Vector2df atPos) {
+void PlayerCharacter :: Spawn(vector3df atPos) {
     Activate();
     SetPos(atPos);
     SetHealth(type->maxHealth);
     attackDelay = 0;
-    vel.Set(0,0);
+    vel = vector3df(0, 0, 0);
     acc = type->acc;
     maxSpeed = type->maxSpeed;
     targetId = INVALID_ID;
-    numOfBullets = NUM_OF_STARTING_BULLETS;
-    numOfMissiles = 20;
-    numOfMines = 20;
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -64,17 +57,10 @@ void PlayerCharacter :: Update(float timeDelta) {
         UpdateFriction(timeDelta);
         UpdateAttack(timeDelta);
 		controller->Update();
-		sceneNode->setPosition(vector3df(Pos().x / 10, 0, Pos().y / 10));
+		sceneNode->setPosition(Pos());
     }
 } // ----------------------------------------------------------------------------------------------
 
-
-
-
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: Draw(Vector2df camPos) const {
-
-} // ----------------------------------------------------------------------------------------------
 
 
 
@@ -108,23 +94,24 @@ void PlayerCharacter :: AddActionDelay(Uint32 amount) {
 // ------------------------------------------------------------------------------------------------
 void PlayerCharacter :: UpdateVelocity(float timeDelta) {
     // Apply acceleration to velocity based on key states:
-    if(controller->MoveHeading().y < 0) {
-        vel.y -= acc * timeDelta;
+    if(controller->MoveHeading().Z < 0) {
+        vel.Z -= acc * timeDelta;
     }
-    else if(controller->MoveHeading().y > 0) {
-        vel.y += acc * timeDelta;
+    else if(controller->MoveHeading().Z > 0) {
+        vel.Z += acc * timeDelta;
     }
 
-    if(controller->MoveHeading().x < 0) {
-        vel.x -= acc * timeDelta;
+    if(controller->MoveHeading().X < 0) {
+        vel.X -= acc * timeDelta;
     }
-    else if(controller->MoveHeading().x > 0) {
-        vel.x += acc * timeDelta;
+    else if(controller->MoveHeading().X > 0) {
+        vel.X += acc * timeDelta;
     }
 
     // Cap the velocity at the maximum speed:
-    if(vel.Length()  > maxSpeed) {
-        vel = vel.Normal() * maxSpeed;
+    if(vel.getLength()  > maxSpeed) {
+        vel = vel.normalize();
+		vel *= maxSpeed;
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -133,55 +120,58 @@ void PlayerCharacter :: UpdateVelocity(float timeDelta) {
 
 // ------------------------------------------------------------------------------------------------
 void PlayerCharacter :: UpdatePosition(float timeDelta) {
+	/*
     float charTop = Pos().y - type->height / 2;
     float charBottem = Pos().y + type->height / 2;
     float charLeft = Pos().x - type->width / 2;
     float charRight = Pos().x + type->width / 2;
-	Vector2df newPos = Pos();
+	vector3df newPos = Pos();
 
     // Handle velocity to the right:
-    if(vel.x > 0) {
-        if(!Game()->CheckCollisionWithLevel( Vector2df(charRight + vel.x * timeDelta, charTop + 2))
-		&& !Game()->CheckCollisionWithLevel( Vector2df(charRight + vel.x * timeDelta, charBottem - 2))) {
+    if(vel.X > 0) {
+        if(!Game()->CheckCollisionWithLevel( vector3df(charRight + vel.X * timeDelta, charTop + 2))
+		&& !Game()->CheckCollisionWithLevel( vector3df(charRight + vel.X * timeDelta, charBottem - 2))) {
 
-            newPos.x += vel.x * timeDelta;
+            newPos.x += vel.X * timeDelta;
         }
         else {
-            vel.x = 0;
+            vel.X = 0;
         }
     }
     // Handle velocity to the left:
-    else if(vel.x < 0) {
-        if(!Game()->CheckCollisionWithLevel(Vector2df(charLeft + vel.x * timeDelta, charTop + 2))
-		&& !Game()->CheckCollisionWithLevel(Vector2df(charLeft + vel.x * timeDelta, charBottem - 2))) {
-            newPos.x += vel.x * timeDelta;
+    else if(vel.X < 0) {
+        if(!Game()->CheckCollisionWithLevel(vector3df(charLeft + vel.X * timeDelta, charTop + 2))
+		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + vel.X * timeDelta, charBottem - 2))) {
+            newPos.x += vel.X * timeDelta;
         }
         else {
-            vel.x = 0;
+            vel.X = 0;
         }
     }
 
     // Handle velocity down:
-    if(vel.y > 0) {
-        if(!Game()->CheckCollisionWithLevel(Vector2df(charRight - 2, charBottem + vel.y * timeDelta))
-		&& !Game()->CheckCollisionWithLevel(Vector2df(charLeft + 2, charBottem + vel.y * timeDelta))) {
-            newPos.y += vel.y * timeDelta;
+    if(vel.Z > 0) {
+        if(!Game()->CheckCollisionWithLevel(vector3df(charRight - 2, charBottem + vel.Z * timeDelta))
+		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + 2, charBottem + vel.Z * timeDelta))) {
+            newPos.y += vel.Z * timeDelta;
         }
         else {
-            vel.y = 0;
+            vel.Z = 0;
         }
     }
     // Handle velocity up
-    else if(vel.y < 0) {
-        if(!Game()->CheckCollisionWithLevel(Vector2df(charRight - 2, charTop + vel.y * timeDelta))
-		&& !Game()->CheckCollisionWithLevel(Vector2df(charLeft + 2, charTop + vel.y * timeDelta))) {
-            newPos.y += vel.y;
+    else if(vel.Z < 0) {
+        if(!Game()->CheckCollisionWithLevel(vector3df(charRight - 2, charTop + vel.Z * timeDelta))
+		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + 2, charTop + vel.Z * timeDelta))) {
+            newPos.y += vel.Z;
         }
         else {
-            vel.y = 0;
+            vel.Z = 0;
         }
     }
-
+	*/
+	vector3df newPos = Pos();
+	newPos += vel;
     SetPos(newPos);
 } // ----------------------------------------------------------------------------------------------
 
@@ -191,8 +181,8 @@ void PlayerCharacter :: UpdatePosition(float timeDelta) {
 
 // ------------------------------------------------------------------------------------------------
 void PlayerCharacter :: UpdateFriction(float timeDelta) {
-    vel.x *= powf(type->friction, timeDelta);
-    vel.y *= powf(type->friction, timeDelta);
+    vel.X *= powf(type->friction, timeDelta);
+    vel.Z *= powf(type->friction, timeDelta);
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -211,7 +201,7 @@ void PlayerCharacter :: UpdateAttack(float timeDelta) {
 
 
 // ------------------------------------------------------------------------------------------------
-Vector2df PlayerCharacter :: Heading() const {
+vector3df PlayerCharacter :: Heading() const {
     return controller->MoveHeading();
 } // ----------------------------------------------------------------------------------------------
 
@@ -220,11 +210,8 @@ Vector2df PlayerCharacter :: Heading() const {
 
 
 // ------------------------------------------------------------------------------------------------
-bool PlayerCharacter :: IsSolid(Vector2df atPos) const {
-    return 	atPos.x > (Uint32)Pos().x - type->width / 2
-            &&		atPos.x < (Uint32)Pos().x + type->width / 2
-            &&		atPos.y > (Uint32)Pos().y - type->height / 2
-            &&		atPos.y < (Uint32)Pos().y + type->height / 2;
+bool PlayerCharacter :: IsSolid(vector3df atPos) const {
+	return 	atPos.getDistanceFrom(Pos()) < type->width;
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -246,30 +233,6 @@ void PlayerCharacter :: AddHealth(Uint32 amount) {
 
 
 // ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: AddBullets(Uint32 amount) {
-    numOfBullets += amount;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: AddMissiles(Uint32 amount) {
-    numOfMissiles += amount;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: AddMines(Uint32 amount) {
-    numOfMines += amount;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
 void PlayerCharacter :: SetRespawnMe(bool b) {
 	respawnMe = b;
 } // ----------------------------------------------------------------------------------------------
@@ -281,47 +244,6 @@ void PlayerCharacter :: SetRespawnMe(bool b) {
 void PlayerCharacter :: SetRespawnTime(Uint32 time) {
 	respawnTime = time;
 } // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: AddPoint() {
-	score++;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Uint32 PlayerCharacter :: GetNumOfBullets() const {
-	return numOfBullets;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Uint32 PlayerCharacter :: GetNumOfMissiles() const {
-	return numOfMissiles;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Uint32 PlayerCharacter :: GetNumOfMines() const {
-	return numOfMines;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Uint32 PlayerCharacter :: GetScore() const {
-	return score;
-} // ----------------------------------------------------------------------------------------------
-
 
 
 
@@ -352,19 +274,15 @@ bool PlayerCharacter :: IsReadyToAttack() const {
 // ------------------------------------------------------------------------------------------------
 Uint32 PlayerCharacter :: WriteToPacket(Uint32 dataWritePos, Uint8 data[]) {
 	Uint32 sendId = Id();
-	Vector2df sendPos = Pos();
+	vector3df sendPos = Pos();
 	Uint32 sendHealth = Health();
 
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_ID], &sendId,4 );
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSX], &sendPos.x, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSY], &sendPos.y, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELX], &vel.x, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELY], &vel.y, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSX], &sendPos.X, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSY], &sendPos.Y, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELX], &vel.X, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELY], &vel.Z, 4);
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_HEALTH], &sendHealth, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_NUM_BULLETS], &numOfBullets, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_NUM_MISSILE], &numOfMissiles, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_NUM_MINES], &numOfMines, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_SCORE], &score, 4);
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_CONTROL_STATE], controller, sizeof(CharacterController));
 
     return PACKET_WRITE_PLAYER_LENGTH;
@@ -375,19 +293,15 @@ Uint32 PlayerCharacter :: WriteToPacket(Uint32 dataWritePos, Uint8 data[]) {
 
 // ------------------------------------------------------------------------------------------------
 Uint32 PlayerCharacter :: ReadFromPacket(Uint32 dataReadPos, Uint8 data[]) {
-	Vector2df readPos;
+	vector3df readPos;
     CharacterController readController(this);
     Uint32 readHealth;
 
-    memcpy(&readPos.x, &data[dataReadPos + PACKET_WRITE_PLAYER_POSX], 4);
-    memcpy(&readPos.y, &data[dataReadPos + PACKET_WRITE_PLAYER_POSY], 4);
-    memcpy(&vel.x, &data[dataReadPos + PACKET_WRITE_PLAYER_VELX], 4);
-    memcpy(&vel.y, &data[dataReadPos + PACKET_WRITE_PLAYER_VELY], 4);
+    memcpy(&readPos.X, &data[dataReadPos + PACKET_WRITE_PLAYER_POSX], 4);
+    memcpy(&readPos.Y, &data[dataReadPos + PACKET_WRITE_PLAYER_POSY], 4);
+    memcpy(&vel.X, &data[dataReadPos + PACKET_WRITE_PLAYER_VELX], 4);
+    memcpy(&vel.Z, &data[dataReadPos + PACKET_WRITE_PLAYER_VELY], 4);
     memcpy(&readHealth, &data[dataReadPos + PACKET_WRITE_PLAYER_HEALTH], 4);
-    memcpy(&numOfBullets, &data[dataReadPos + PACKET_WRITE_PLAYER_NUM_BULLETS], 4);
-    memcpy(&numOfMissiles, &data[dataReadPos + PACKET_WRITE_PLAYER_NUM_MISSILE], 4);
-    memcpy(&numOfMines, &data[dataReadPos + PACKET_WRITE_PLAYER_NUM_MINES], 4);
-    memcpy(&score, &data[dataReadPos + PACKET_WRITE_PLAYER_SCORE], 4);
     memcpy(&readController, &data[dataReadPos + PACKET_WRITE_PLAYER_CONTROL_STATE], sizeof(CharacterController));
 
 	SetPos(readPos);

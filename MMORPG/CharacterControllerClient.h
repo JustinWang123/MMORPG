@@ -2,7 +2,6 @@
 #define CHARACTER_CONTROLLER_CLIENT_H
 
 #include "CharacterController.h"
-#include "ToggleButton.h"
 
 class GameClient;
 
@@ -16,7 +15,6 @@ public:
 
 private:
 	GameClient*					game;
-	ToggleButton				autoAttackButton;
 };
 
 #endif

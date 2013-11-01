@@ -2,26 +2,17 @@
 #define EDITOR_GAME_SIM_H
 
 #include "GameBase.h"
-#include "Button.h"
-const float EDITOR_CAM_SPEED =  5.0f;
-
+#include "Irr_Wrapper.hpp"
 
 class GameEditor : public GameBase {
 public:
     GameEditor();
     virtual ~GameEditor();
 
+	virtual void			Draw() {}
+
     virtual void			Update();
-    virtual void			Draw();
-
 private:
-    Button					exitButton;
-    Button					saveButton;
-    SDL_Surface*			inGameMenu;
-
-    Vector2df camPos;
-
-    int 					currentTile;
-    SDL_Surface*			selector;
+   	IGUIWindow*				menuWindow;
 };
 #endif // EDITOR_GAME_SIM_H

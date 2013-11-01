@@ -2,7 +2,6 @@
 #define PROJECTILE_BASE_H
 
 #include "SDLWrapper.h"
-#include "Vector2df.h"
 #include "EntityBase.h"
 class Event;
 class GameBase;
@@ -62,10 +61,9 @@ public:
     virtual                 ~ProjectileBase() {}
 
 	virtual void			Update(float timeDelta);
-	virtual void			Draw(Vector2df camPos) const;
 
 
-	void					SetState(Uint32 setOwnerPlayerId, Vector2df setPos, Vector2df setHeading, float setSpeed, float setLife, Uint32 setHealth, bool isMoving);
+	void					SetState(Uint32 setOwnerPlayerId, vector3df setPos, vector3df setHeading, float setSpeed, float setLife, Uint32 setHealth, bool isMoving);
 	void					SetType(ProjectileType setType, float setScale, SDL_Surface* setSurface);
 
 	// Packet:
@@ -78,7 +76,7 @@ public:
     void					DecreaseLife(float amount);
     void					SetSpeed(float setSpeed);
 	void					SetHeading(Uint32 d);
-    void					SetHeading(Vector2df heading);
+    void					SetHeading(vector3df heading);
 	void					SetScale(float setScale);
 	void					SetIsMoving(bool b);
 
@@ -95,11 +93,11 @@ public:
     float					Life() const;
     float					Speed() const;
 	Uint32					HeadingDeg() const;
-    Vector2df				Heading() const;
+    vector3df				Heading() const;
 	float					Scale() const;
 	SDL_Surface*			Surface() const;
-	virtual bool			IsSolid(Vector2df atPos) const;
-	Vector2df				HitPos() const;
+	virtual bool			IsSolid(vector3df atPos) const;
+	vector3df				HitPos() const;
 	bool					IsMoving() const;
 
 private:
@@ -119,7 +117,7 @@ private:
 	float					scale;
 	Uint32					radius;
 	SDL_Surface* 			surface;
-	Vector2df				hitPos;
+	vector3df				hitPos;
 	bool					isMoving;
 	Event*					defaultEvent;
 

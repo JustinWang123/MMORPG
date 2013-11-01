@@ -16,7 +16,7 @@ bool EntityBase :: IsActive() const {
     return isActive;
 }
 
-Vector2df EntityBase :: Pos() const {
+vector3df EntityBase :: Pos() const {
     return pos;
 }
 
@@ -34,7 +34,7 @@ Uint32 EntityBase :: AttackerId() const {
 	return attackerId;
 } // ----------------------------------------------------------------------------------------------
 
-bool EntityBase :: IsSolid(Vector2df atPos) const {
+bool EntityBase :: IsSolid(vector3df atPos) const {
 	return false;
 }
 
@@ -50,7 +50,7 @@ void EntityBase :: Deactivate() {
     isActive = false;
 }
 
-void EntityBase :: SetPos(Vector2df setPos) {
+void EntityBase :: SetPos(vector3df setPos) {
     pos = setPos;
 }
 

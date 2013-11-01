@@ -19,7 +19,7 @@ ProjectileBase :: ProjectileBase(Uint32 setId, GameBase* setGame, Event* setDefa
 
 
 // ------------------------------------------------------------------------------------------------
-void ProjectileBase :: SetState(Uint32 setOwnerPlayerId, Vector2df setPos, Vector2df setHeading, float setSpeed, float setLife, Uint32 setHealth, bool setIsMoving) {
+void ProjectileBase :: SetState(Uint32 setOwnerPlayerId, vector3df setPos, vector3df setHeading, float setSpeed, float setLife, Uint32 setHealth, bool setIsMoving) {
 
 	SetOwnerPlayerId(setOwnerPlayerId);
     SetPos(setPos);
@@ -58,7 +58,7 @@ void ProjectileBase :: Update(float timeDelta) {
 		updateEvent->Process(this);
 
 		if(isMoving) {
-			Vector2df nextPos = Pos() + Heading() * speed * timeDelta;
+			vector3df nextPos = Pos() + Heading() * speed * timeDelta;
 
 			if(Game()->CheckCollisionWithChars(nextPos + Heading() * radius)) {
 				hitPos = nextPos + Heading() * radius;
@@ -79,45 +79,36 @@ void ProjectileBase :: Update(float timeDelta) {
 
 		DecreaseLife(timeDelta);
     }
-
-    // Post-Conditions
-    assert(Pos().x >= MAP_MIN_POS_X && Pos().x < MAP_MAX_POS_X && "ProjectileBase::Update Pos().x >= MAP_MIN_POS_X && Pos().x < MAP_MAX_POS_X");
-    assert(Pos().y >= MAP_MIN_POS_Y && Pos().y < MAP_MAX_POS_Y && "ProjectileBase::Update Pos().y >= MAP_MIN_POS_Y && Pos().y < MAP_MAX_POS_Y");
 } // ----------------------------------------------------------------------------------------------
 
 
 
-
-// ------------------------------------------------------------------------------------------------
-void ProjectileBase :: Draw(Vector2df camPos) const {
-
-} // ----------------------------------------------------------------------------------------------
 
 
 
 
 // ------------------------------------------------------------------------------------------------
 Uint32 ProjectileBase :: WriteToPacket(Uint32 dataWritePos, Uint8 data[]) {
-	Uint32 sendId = Id();
-	ProjectileType sendType = Type();
-    Vector2df sendPos = Pos();
-    Uint32 sendHeadingDeg = HeadingDeg();
-    float sendSpeed = Speed();
-    Uint32 sendOwnerPlayerId = OwnerPlayerId();
-    float sendLife = Life();
-    Uint32 sendHealth = Health();
-    bool sendIsMoving = IsMoving();
+	Uint32			sendId				= Id();
+	ProjectileType	sendType			= Type();
+    vector3df		sendPos				= Pos();
+    Uint32			sendHeadingDeg		= HeadingDeg();
+    float			sendSpeed			= Speed();
+    Uint32			sendOwnerPlayerId	= OwnerPlayerId();
+    float			sendLife			= Life();
+    Uint32			sendHealth			= Health();
+    bool			sendIsMoving		= IsMoving();
 
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_ID], &sendId, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_TYPE], &sendType, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_POSX], &sendPos.x, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_POSY], &sendPos.y, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_HEADING], &sendHeadingDeg, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_SPEED], &sendSpeed, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_LIFE], &sendLife, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_HEALTH], &sendHealth, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_ID],		&sendId, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_TYPE],		&sendType, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_POSX],		&sendPos.X, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_POSY],		&sendPos.Y, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_HEADING],	&sendHeadingDeg, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_SPEED],		&sendSpeed, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_LIFE],		&sendLife, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_HEALTH],	&sendHealth, 4);
     memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_PLAYER_ID], &sendOwnerPlayerId, 4);
-	memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_ISMOVING], &sendIsMoving, 1);
+	memcpy(&data[dataWritePos + PACKET_WRITE_PROJECTILE_ISMOVING],	&sendIsMoving, 1);
 
     return PACKET_WRITE_PROJECTILE_LENGTH;
 } // ----------------------------------------------------------------------------------------------
@@ -246,8 +237,9 @@ void ProjectileBase :: SetHeading(Uint32 d) {
 
 
 // ------------------------------------------------------------------------------------------------
-void ProjectileBase :: SetHeading(Vector2df heading) {
-    headingDeg = heading.Deg();
+void ProjectileBase :: SetHeading(vector3df heading) {
+	headingDeg = heading.getSphericalCoordinateAngles().X;
+	
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -262,8 +254,8 @@ Uint32	ProjectileBase :: HeadingDeg() const {
 
 
 // ------------------------------------------------------------------------------------------------
-Vector2df ProjectileBase :: Heading() const {
-    return Vector2df(headingDeg);
+vector3df ProjectileBase :: Heading() const {
+    return vector3df(headingDeg);
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -286,13 +278,13 @@ SDL_Surface* ProjectileBase :: Surface() const {
 } // ------------------------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------------------------
-bool ProjectileBase :: IsSolid(Vector2df atPos) const {
-	return Vector2df(Pos() - atPos).Length() < radius;
+bool ProjectileBase :: IsSolid(vector3df atPos) const {
+	return vector3df(Pos() - atPos).getLength() < radius;
 } // ------------------------------------------------------------------------------------------------
 
 
 
-Vector2df ProjectileBase :: HitPos() const {
+vector3df ProjectileBase :: HitPos() const {
 	return hitPos;
 }
 

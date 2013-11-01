@@ -1,7 +1,6 @@
 #ifndef CHARACTER_CONTROLLER_H
 #define CHARACTER_CONTROLLER_H
 
-#include "Vector2df.h"
 #include "PlayerCharacter.h"
 class GameBase;
 
@@ -15,16 +14,16 @@ public:
 	virtual void				SetState(CharacterController* setState);
 
 	// Accessors:
-	Vector2df 					MoveHeading() const;
-	Vector2df 					AimHeading() const;
+	vector3df 					MoveHeading() const;
+	vector3df 					AimHeading() const;
 	bool						DoAction1() const;
 	bool						DoAction2() const;
 	bool						DoAction3() const;
 	bool						HasChanged();
 
 protected:
-	Vector2df 					moveHeading;
-	Vector2df 					aimHeading;
+	vector3df 					moveHeading;
+	vector3df 					aimHeading;
 	bool						doAction1;
 	bool						doAction2;
 	bool						doAction3;

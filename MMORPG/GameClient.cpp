@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <fstream>
 #include "PacketProtocol.h"
+#include "PlayerCharacterView.h"
+#include "CharacterControllerClient.h"
 using namespace std;
 
 
@@ -41,15 +43,7 @@ GameClient :: GameClient() {
         AddMessagetoChat("Failed to bind socket");
     }
 
-    inGameMenu = LoadSurface("Surfaces/InGameMenu.png");
-
-    exitButton.Init(GAME_EXIT_BUTTON_POS_X, GAME_EXIT_BUTTON_POS_Y,
-                    LoadSurface("Surfaces/ExitButtonUp.png"),
-                    LoadSurface("Surfaces/ExitButtonOver.png"),
-                    LoadSurface("Surfaces/ExitButtonUp.png"));
-
-	RegisterButton(&exitButton);
-
+    
     // No players are active at first
     for(Uint32 i = 0; i < MAX_PLAYERS; i++) {
         players[i].state = PLAYER_STATE_DISCONECTED;
@@ -65,10 +59,6 @@ GameClient :: GameClient() {
     timeToSendNextControlState = SDL_GetTicks();
     timeOfLastGameServerMessage = SDL_GetTicks();
     nextPacketTime = SDL_GetTicks();
-    surfaceTargetRing = LoadSurface("Surfaces/TargetRing.png");
-
-	
-
 } // ------------------------------------------------------------------------------------------------
 
 
@@ -80,8 +70,6 @@ GameClient :: ~GameClient() {
     if(isConnectedToGameServer) {
         SendDisconnectNotification();
     }
-
-    FreeSurface(inGameMenu);
 
     if ( socket != NULL ) {
         SDLNet_UDP_Close(socket);
@@ -102,20 +90,9 @@ void GameClient :: Update() {
     ReceiveNetworkData();
 
     // Update everything:
-    InputChatMessage();
     HandleMyPcControlState();
     GameBase::Update();
-    UpdateCamera();
     UpdateGameServerConnection();
-
-    for(std::vector<Button*>::iterator it = buttons.begin(); it != buttons.end(); it++) {
-		(*it)->Update();
-    }
-
-    // Exit:
-    if(exitButton.IsClicked()) {
-        exit = true;
-    }
 
     // Send network data:
     if(isConnectedToGameServer && SDL_GetTicks() > nextPacketTime) {
@@ -146,18 +123,6 @@ void GameClient :: UpdateGameServerConnection() {
 
 
 
-// ------------------------------------------------------------------------------------------------
-void GameClient :: UpdateCamera() {
-    if(myPc != 0) {
-        float desiredCamPosX = myPc->Pos().x - GAME_SCREEN_WIDTH / 2;
-        camPos.x -= (camPos.x - desiredCamPosX) / 4.0f;
-        float desiredCamPosY = myPc->Pos().y - GAME_SCREEN_HEIGHT / 2;
-        camPos.y -= (camPos.y - desiredCamPosY) / 4.0f;
-    }
-} // ----------------------------------------------------------------------------------------------
-
-
-
 
 // ------------------------------------------------------------------------------------------------
 void GameClient :: HandleMyPcControlState() {
@@ -175,99 +140,8 @@ void GameClient :: HandleMyPcControlState() {
 
 // ------------------------------------------------------------------------------------------------
 void GameClient :: Draw() {
-    GameBase::Draw(camPos);
-    DrawHUD();
 } // ----------------------------------------------------------------------------------------------
 
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameClient :: DrawHUD() {
-    DrawSurface(580, 0, inGameMenu);
-    DrawChatLog();
-    DrawChatMessage();
-    DrawScoreBoard();
-
-    for(std::vector<Button*>::iterator it = buttons.begin(); it != buttons.end(); it++) {
-		(*it)->Draw();
-    }
-
-	if(myPc) {
-		 if(myPc->TargetId() != INVALID_ID) {
-
-			// Draw target ring:
-			PlayerCharacter* target = GetCharacter(myPc->TargetId());
-
-			DrawSurface(target->Pos().x - camPos.x - surfaceTargetRing->w/2,
-						target->Pos().y - camPos.y - surfaceTargetRing->h/2,
-						surfaceTargetRing);
-
-			// Draw target health:
-			DrawText(	target->Pos().x - camPos.x - surfaceTargetRing->w/2 - 10,
-						target->Pos().y - camPos.y - surfaceTargetRing->h/2 - 20,
-						ToString(target->Health()));
-		}
-
-		Vector2df charScreenPos = myPc->Pos() - camPos;
-
-		// Draw health:
-		DrawText(charScreenPos.x - 10, charScreenPos.y - 20, ToString(myPc->Health()));
-	}
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameClient :: DrawScoreBoard() {
-
-    if(myChannel != INVALID_CHANNEL) {
-        DrawText(610,10, "Health: " + ToString(myPc->Health()));
-        DrawText(610,25, "Bullets: " + ToString(myPc->GetNumOfBullets()));
-        DrawText(700,10, "Missiles: " + ToString(myPc->GetNumOfMissiles()));
-        DrawText(700,25, "Mines: " + ToString(myPc->GetNumOfMines()));
-        //DrawText(610,450, "GameServerPingTime: " + ToString(serverPingTime));
-        //DrawText(610,470, "time: " + ToString( (Uint32)GetTime()));// - (Uint32)timeOfLastMessageToGameServer));
-    }
-
-    // Draw ACK list:
-    /*
-    string ackList;
-    ackList += ToString(remoteSequenceNum);
-    ackList += "       ";
-    for(int i = 0; i < 32; i++) {
-    	if(remoteSequenceNumBitField & (unsigned)pow(2, i)) {
-    		ackList += '1';
-    	}
-    	else {
-    		ackList += '0';
-    	}
-    }
-
-    DrawText(10,10, "ACK: " + ackList);
-    */
-
-
-    // Draw list of players and their score:
-    DrawText(590, 45, "Players:");
-    int pos = 65;
-    for(Uint32 i = 0; i < MAX_PLAYERS; i++) {
-        if(players[i].state != PLAYER_STATE_DISCONECTED) {
-            std::string str(players[i].name);
-
-            str += " - " + ToString(GetPlayerCharacterScore(i));
-
-            DrawText(590, pos, str);
-            pos += 20;
-        }
-    }
-
-} // ----------------------------------------------------------------------------------------------
 
 
 
@@ -364,6 +238,8 @@ ListablePacket* GameClient :: GetStoredPacket(Uint32 sequenceNum) {
 } // ----------------------------------------------------------------------------------------------
 
 
+
+
 // ------------------------------------------------------------------------------------------------
 void GameClient :: ReceiveNetworkData() {
     // Receive n packets of data on our UDP socket:
@@ -385,10 +261,6 @@ void GameClient :: ReceiveNetworkData() {
 
         case PACKET_UPDATE_WORLD:
             GameBase::HandleUpdateWorld(packets[n]);
-            break;
-
-        case PACKET_LEVEL_DATA:
-            HandleLevelData(packets[n]);
             break;
 
         case PACKET_ADD:
@@ -564,8 +436,9 @@ void GameClient :: HandleConnectionAccepted(UDPpacket* packet) {
     players[myChannel].name = clientName;
 
     // Get pc:
-    MakeCharacterControllable(myChannel);
     myPc = GetPlayerCharacter(myChannel);
+	myPc->SetController(new CharacterControllerClient(myPc));
+	view = new PlayerCharacterView(this, myPc);
 
     // Display a text message:
     AddMessagetoChat("You have established a conection with the server...");
@@ -602,41 +475,4 @@ void GameClient :: HandleKillNotification(UDPpacket* packet) {
     memcpy(&killedID, &packet->data[PACKET_KILL_NOTIFICATION_KILLED_ID], 4);
 
     AddMessagetoChat(players[killedID].name + " was killed by " + players[killerID].name);
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Vector2df GameClient :: CamPos() const {
-	return camPos;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Vector2df GameClient :: MouseWorldPos() const {
-	return camPos + Vector2df(mouseX, mouseY);
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameClient :: RegisterButton(Button* button) {
-	buttons.push_back(button);
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameClient :: UnregisterButton(Button* button) {
-	for(std::vector<Button*>::iterator it = buttons.begin(); it != buttons.end(); it++) {
-		if( (*it) == button) {
-			buttons.erase(it);
-			break;
-		}
-	}
 } // ----------------------------------------------------------------------------------------------

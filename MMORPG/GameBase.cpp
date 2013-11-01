@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "CharacterControllerClient.h"
 #include "GUI.h"
+#include "BaseView.h"
 
 using namespace std;
 
@@ -89,7 +90,7 @@ GameBase :: GameBase() {
 
 		// Temp initing stuff:
 		nonPlayerCharacters[id]->Activate();
-		nonPlayerCharacters[id]->SetPos(Vector2df(528 + i * 32, 128));
+		nonPlayerCharacters[id]->SetPos(vector3df(i * 10, 0, 128));
         id++;
     }
 
@@ -100,27 +101,10 @@ GameBase :: GameBase() {
     	id++;
     }
 
-
-    bulletSurface = LoadSurface("Surfaces/Bullet.bmp");
-    missileSurface = LoadSurface("Surfaces/Missile.png");
-    mineSurface = LoadSurface("Surfaces/Mine.png");
-    smokeSurface = LoadSurface("Surfaces/SmokeParticle.png");
-    explosionSurface = LoadSurface("Surfaces/ExplosionParticle.png");
-
-    gameMap = new Map(Vector2df(4, 4), this);
+    gameMap = new Map(vector3df(4, 4, 4), this);
 
     oldTime = SDL_GetTicks();
-
-	// CREATE GAME MENU WINDOW:
-	window = GUI->addWindow(rect<s32>(600,0, 800,600), true, L"UI", 0, GAME_USER_INTERFACE_WINDOW);
-	window->setDraggable(false);
-
-	// Disable default close button on window:
-	window->getCloseButton()->setEnabled(false);
-	window->getCloseButton()->setVisible(false);
-	
-	chatWindow = GUI->addListBox(rect<s32>(20, 100, 180, 560), window, GAME_USER_INTERFACE_TEXT_WINDOW, true);
-	GUI->addButton(core::rect<s32>(75,570,125, 585), window, GAME_USER_INTERFACE_QUIT_BUTTON, L"Quit");
+	view = 0;
 
 } // ----------------------------------------------------------------------------------------------
 
@@ -165,11 +149,6 @@ GameBase :: ~GameBase() {
 		characterActionConditions[i] = 0;
     }
 
-    FreeSurface(bulletSurface);
-    FreeSurface(missileSurface);
-    FreeSurface(mineSurface);
-    FreeSurface(smokeSurface);
-    FreeSurface(explosionSurface);
     delete gameMap;
 } // ----------------------------------------------------------------------------------------------
 
@@ -181,6 +160,14 @@ void GameBase :: Update() {
     float timeDelta = (SDL_GetTicks() - oldTime) / 20.0f;
     oldTime = SDL_GetTicks();
 
+	if(receiver->GUIButtonClicked(GAME_USER_INTERFACE_QUIT_BUTTON)) {
+		quit = true;
+	}
+	
+	if(view) {
+		view->Update();
+	}
+
     UpdateAllEntities(timeDelta);
 } // ----------------------------------------------------------------------------------------------
 
@@ -188,9 +175,10 @@ void GameBase :: Update() {
 
 
 // ------------------------------------------------------------------------------------------------
-void GameBase :: Draw(Vector2df camPos) {
-    DrawMap(camPos);
-    DrawAllEntities(camPos);
+void GameBase :: Draw() {
+    if(view) {
+		view->Draw();
+	}
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -299,7 +287,7 @@ void GameBase :: HandleUpdateWorld(UDPpacket* packet) {
 Uint32 GameBase :: ReadProjectilePacket(Uint32 dataReadPos, Uint8 data[]) {
 	Uint32			readId;
 	ProjectileType 	readType;
-	Vector2df 		readPos;
+	vector3df 		readPos;
     Uint32 			readHeadingDeg;
     float			readSpeed;
     Uint32 			readOwnerPlayerId;
@@ -309,8 +297,8 @@ Uint32 GameBase :: ReadProjectilePacket(Uint32 dataReadPos, Uint8 data[]) {
 
 	memcpy(&readId, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_ID], 		4);
 	memcpy(&readType,	 		&data[dataReadPos + PACKET_WRITE_PROJECTILE_TYPE], 		4);
-    memcpy(&readPos.x, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_POSX], 		4);
-    memcpy(&readPos.y, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_POSY], 		4);
+    memcpy(&readPos.X, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_POSX], 		4);
+    memcpy(&readPos.Y, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_POSY], 		4);
     memcpy(&readHeadingDeg, 	&data[dataReadPos + PACKET_WRITE_PROJECTILE_HEADING], 	4);
     memcpy(&readSpeed, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_SPEED], 	4);
     memcpy(&readLife, 			&data[dataReadPos + PACKET_WRITE_PROJECTILE_LIFE], 		4);
@@ -324,7 +312,7 @@ Uint32 GameBase :: ReadProjectilePacket(Uint32 dataReadPos, Uint8 data[]) {
 	}
 
 	// set the projectiles state:
-	projectiles[readId]->SetState(readOwnerPlayerId, readPos, Vector2df(readHeadingDeg), readSpeed, readLife, readHealth, readIsMoving);
+	projectiles[readId]->SetState(readOwnerPlayerId, readPos, vector3df(readHeadingDeg), readSpeed, readLife, readHealth, readIsMoving);
 	projectiles[readId]->Activate();
 
 	return PACKET_WRITE_PROJECTILE_LENGTH;
@@ -334,24 +322,17 @@ Uint32 GameBase :: ReadProjectilePacket(Uint32 dataReadPos, Uint8 data[]) {
 
 
 
-// ------------------------------------------------------------------------------------------------
-void GameBase :: MakeCharacterControllable(Uint32 id) {
-    if(id < MAX_PLAYERS) {
-    	playerCharacters[id]->SetController(new CharacterControllerClient(playerCharacters[id]));
-    }
-} // ----------------------------------------------------------------------------------------------
-
 
 
 
 // ------------------------------------------------------------------------------------------------
-void GameBase :: DamageCharsInCircle(Uint32 attackerId, Uint32 damage, Vector2df centerPos, float radius) {
+void GameBase :: DamageCharsInCircle(Uint32 attackerId, Uint32 damage, vector3df centerPos, float radius) {
     assert(attackerId < MAX_PLAYERS && "GameBase::DamageCharsInCircle attackerId < MAX_PLAYERS");
 
 	FOR_ENTITY_IN_ENTITIES { 
 		ENTITY = it->second;
         if(ENTITY->IsActive()) {
-            float distance = (centerPos - ENTITY->Pos()).Length();
+            float distance = (centerPos - ENTITY->Pos()).getLength();
             if(distance  < radius) {
                 ENTITY->DecreaseHealth(attackerId, damage);
             }
@@ -363,7 +344,7 @@ void GameBase :: DamageCharsInCircle(Uint32 attackerId, Uint32 damage, Vector2df
 
 
 // ------------------------------------------------------------------------------------------------
-void GameBase :: DamageCharsAtPos(Uint32 attackerId, Uint32 damage, Vector2df atPos) {
+void GameBase :: DamageCharsAtPos(Uint32 attackerId, Uint32 damage, vector3df atPos) {
     assert(attackerId < MAX_PLAYERS && "GameBase::DamageCharsAtPos attackerId < MAX_PLAYERS");
 
 	FOR_ENTITY_IN_ENTITIES { 
@@ -382,7 +363,7 @@ void GameBase :: DamageCharsAtPos(Uint32 attackerId, Uint32 damage, Vector2df at
 }
 
 
-Uint32 GameBase :: GetCharacterIdAtPos(Vector2df pos) {
+Uint32 GameBase :: GetCharacterIdAtPos(vector3df pos) {
 	FOR_CHAR_IN_CHARACTERS {
 		CHAR = it->second;
 		if(CHAR->IsSolid(pos)) {
@@ -396,12 +377,12 @@ Uint32 GameBase :: GetCharacterIdAtPos(Vector2df pos) {
 
 // ------------------------------------------------------------------------------------------------
 void GameBase :: SpawnPlayerCharacter(Uint32 playerID) {
-    Vector2df spawnPos = Vector2df(50,50);
+    vector3df spawnPos = vector3df(50, 0, 50);
     playerCharacters[playerID]->Spawn(spawnPos);
 } // ----------------------------------------------------------------------------------------------
 
 
-void GameBase :: CreateProjectile(ProjectileType type, int ownerPlayerId, Vector2df setPos, Vector2df setHeading) {
+void GameBase :: CreateProjectile(ProjectileType type, int ownerPlayerId, vector3df setPos, vector3df setHeading) {
 	FOR_PROJ_IN_PROJECTILES { 
 		PROJ = it->second;
     	if(!PROJ->IsActive()) {
@@ -488,9 +469,9 @@ void GameBase :: SetProjectileType(Uint32 id, ProjectileType setType) {
 
 
 // ------------------------------------------------------------------------------------------------
-void GameBase :: CreateExplosion(int ownerPlayerID, Vector2df setPos) {
+void GameBase :: CreateExplosion(int ownerPlayerID, vector3df setPos) {
     for(Uint32 i = 0; i < 360; i += 35) {
-        CreateProjectile(PROJECTILE_TYPE_EXPLOSION_PARTICLE, ownerPlayerID, setPos, Vector2df(i));
+        CreateProjectile(PROJECTILE_TYPE_EXPLOSION_PARTICLE, ownerPlayerID, setPos, vector3df(i));
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -498,25 +479,6 @@ void GameBase :: CreateExplosion(int ownerPlayerID, Vector2df setPos) {
 
 
 
-void GameBase :: DrawAllEntities(Vector2df camPos) {
-	FOR_ENTITY_IN_ENTITIES { 
-		ENTITY = it->second;
-		if(ENTITY->IsActive()) {
-			ENTITY->Draw(camPos);
-		}
-	}
-}
-
-
-
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameBase ::DrawMap(Vector2df camPos) {
-    gameMap->Draw(camPos);
-} // ----------------------------------------------------------------------------------------------
 
 
 
@@ -542,11 +504,10 @@ void GameBase :: UpdateRespawn(float timeDelta) {
             // If the player just died:
             if(!PC->GetRespawnMe()) {
                 PC->SetRespawnMe(true);
-                PC->SetRespawnTime(SDL_GetTicks() + RESPAWN_DELAY); // FIXTHIS timing?
+                PC->SetRespawnTime(SDL_GetTicks() + RESPAWN_DELAY); // FIXTHIS timing? 
 
                 // Add point to his killer:
                 if(PC->AttackerId() < MAX_PLAYERS) {
-                    playerCharacters[ PC->AttackerId() ]->AddPoint();
                 }
 
                 //SendKillMessageToAll(players[i].pc->GetKillerId(), i); FIXTHIS
@@ -565,7 +526,7 @@ void GameBase :: UpdateRespawn(float timeDelta) {
 
 
 // ------------------------------------------------------------------------------------------------
-bool GameBase :: CheckCollisionWithChars(Vector2df atPos) const {
+bool GameBase :: CheckCollisionWithChars(vector3df atPos) const {
     // Collide with characters:
     FOR_CHAR_IN_CHARACTERS {
 		CHAR = it->second;
@@ -588,7 +549,7 @@ bool GameBase :: CheckCollisionWithChars(Vector2df atPos) const {
 
 
 // ------------------------------------------------------------------------------------------------
-bool GameBase :: CheckCollisionWithLevel(Vector2df atPos) const {
+bool GameBase :: CheckCollisionWithLevel(vector3df atPos) const {
     assert(gameMap && "GameBase :: CheckCollisionWithLevel gameMap");
     return gameMap->IsPosSolid(atPos);
 } // ----------------------------------------------------------------------------------------------
@@ -598,38 +559,26 @@ bool GameBase :: CheckCollisionWithLevel(Vector2df atPos) const {
 
 
 // ------------------------------------------------------------------------------------------------
-bool GameBase :: IsPosSolid(Vector2df atPos) const {
+bool GameBase :: IsPosSolid(vector3df atPos) const {
     return  CheckCollisionWithLevel(atPos)  || CheckCollisionWithChars(atPos);
 } // ----------------------------------------------------------------------------------------------
 
 
 
 
-// ------------------------------------------------------------------------------------------------
-bool GameBase :: IsPosGravityWell(Vector2df atPos) const {
-    return gameMap->IsPosGravityWell(atPos);
-} // ----------------------------------------------------------------------------------------------
 
 
 
 
 // ------------------------------------------------------------------------------------------------
-Vector2df GameBase :: GetPosGravity(Vector2df atPos) const {
-    return gameMap->GetPosGravity(atPos);
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-Vector2df GameBase :: GetClosestCharPos(Vector2df atPos) const {
+vector3df GameBase :: GetClosestCharPos(vector3df atPos) const {
     int closestCharID = -1;
     float closestDistance = 100000.0f; // This large number ensures at least one char will be closer
 
 	FOR_CHAR_IN_CHARACTERS {
 		CHAR = it->second;
         if(CHAR->IsActive()) {
-            float newDistance = sqrt( pow(atPos.x - CHAR->Pos().x, 2) + pow(atPos.y - CHAR->Pos().y, 2));
+			float newDistance = atPos.getDistanceFrom(CHAR->Pos());
 
             if(newDistance < closestDistance) {
                 closestDistance = newDistance;
@@ -641,106 +590,10 @@ Vector2df GameBase :: GetClosestCharPos(Vector2df atPos) const {
         return playerCharacters.at(closestCharID)->Pos();
     }
     else {
-        return Vector2df(0,0);
+        return vector3df(0, 0, 0);
     }
 } // ----------------------------------------------------------------------------------------------
 
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameBase :: InputChatMessage() {
-    // Already typing a message:
-    if(isTypingChatMessage) {
-        // Left arrow key to move typing cursor:
-        if(keysDown[SDLK_LEFT] && chatMessageCursorPos > 0) {
-            chatMessageCursorPos--;
-        }
-        // Right arrow key to move typing cursor:
-        else if(keysDown[SDLK_RIGHT] && chatMessageCursorPos < chatMessage.length()) {
-            chatMessageCursorPos++;
-        }
-        // Backspace to delete chars:
-        else if(keysReleased[SDLK_BACKSPACE] && chatMessageCursorPos > 0) {
-            chatMessageCursorPos--;
-            chatMessage.erase(chatMessageCursorPos);
-        }
-        // Return to send the message to all:
-        else if(keysDown[SDLK_RETURN]) {
-            // SendTextMessage(chatMessage);
-            isTypingChatMessage = false;
-            chatMessage.clear();
-        }
-        // Input any char to text message:
-        else {
-            InputCharToChatMessage();
-        }
-    }
-    // Start typing a message:
-    else if(keysReleased[SDLK_t]) {
-        isTypingChatMessage = true;
-        chatMessageCursorPos = 0;
-        chatMessage.clear();
-    }
-} // ------------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameBase :: InputCharToChatMessage() {
-    for(int i = 32; i <= 122; i++) {
-        if(keysReleased[i]) {
-            if(chatMessage.length() == 0) {
-                chatMessage.append(1, (char)i);
-            }
-            else {
-                chatMessage.insert(chatMessageCursorPos, 1, (char)i);
-            }
-
-            chatMessageCursorPos++;
-        }
-    }
-} // ------------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameBase :: DrawChatLog() {
-    Uint32 line = 0;
-    Uint32 chatLogPos = 0;
-
-    if(chatLog.size() > CHAT_LOG_NUM_LINES_VISIBLE) {
-        chatLogPos = chatLog.size() - CHAT_LOG_NUM_LINES_VISIBLE;
-    }
-
-    for(/**/ ; chatLogPos < chatLog.size(); chatLogPos++) {
-        DrawText(CHAT_LOG_POS_X, CHAT_LOG_POS_Y + line * TEXT_SIZE, chatLog[chatLogPos]);
-        line++;
-    }
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void GameBase :: DrawChatMessage() {
-    if(isTypingChatMessage) {
-        // Draw the empty chatMessage:
-        if(chatMessage.length() == 0) {
-            DrawText(CHAT_MESSAGE_POS_X, CHAT_MESSAGE_POS_Y, "|");
-        }
-        // Draw the typing Message:
-        else {
-            DrawText(CHAT_MESSAGE_POS_X, CHAT_MESSAGE_POS_Y,
-                     chatMessage.substr(0, chatMessageCursorPos)
-                     + "|"
-                     + chatMessage.substr(chatMessageCursorPos, chatMessage.length() - chatMessageCursorPos));
-        }
-    }
-} // ----------------------------------------------------------------------------------------------
 
 
 
@@ -749,7 +602,7 @@ void GameBase :: DrawChatMessage() {
 void GameBase :: AddMessagetoChat(std::string msg) {
 	
 	core::stringw msgw(msg.c_str());
-	chatWindow->addItem(msgw.c_str());
+	//chatWindow->addItem(msgw.c_str());
 
     // Get number of full lines:
     int lines =  msg.length() / CHAT_LOG_LINE_LENGTH;
@@ -761,8 +614,6 @@ void GameBase :: AddMessagetoChat(std::string msg) {
     // Push each line onto the chatLog:
     for(int i = 0; i < lines; i++) {
         chatLog.push_back(msg.substr(i * CHAT_LOG_LINE_LENGTH, CHAT_LOG_LINE_LENGTH));
-
-		
     }
 } // ----------------------------------------------------------------------------------------------
 

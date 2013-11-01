@@ -12,6 +12,7 @@
 #include "CharacterActionCondition.h"
 #include <vector>
 #include <map>
+class BaseView;
 
 const Uint32 						MAX_PLAYERS = 10;
 const Uint32						MAX_NPCS = 10;
@@ -38,7 +39,7 @@ public:
     virtual							~GameBase();
 
     virtual void					Update();
-    virtual void					Draw(Vector2df camPos);
+	virtual void					Draw();
 
     void							LoadMap(std::string fileName);
 
@@ -49,28 +50,24 @@ public:
     Uint32 							WriteLevelDataToPacket(Uint8 data[]);
 
     // TEMPORARY:
-    void							MakeCharacterControllable(Uint32 id);
     PlayerCharacter*				GetPlayerCharacter(Uint32 playerId) {return playerCharacters[playerId];}
-    Uint32							GetPlayerCharacterScore(Uint32 playerId){return playerCharacters[playerId]->GetScore();}
 
     // Events:
-    void							DamageCharsInCircle(Uint32 attackerID, Uint32 damage, Vector2df centerPos, float radius);
-    void							DamageCharsAtPos(Uint32 attackerID, Uint32 damage, Vector2df atPos);
+    void							DamageCharsInCircle(Uint32 attackerID, Uint32 damage, vector3df centerPos, float radius);
+    void							DamageCharsAtPos(Uint32 attackerID, Uint32 damage, vector3df atPos);
     PlayerCharacter*                GetCharacter(Uint32 id);
-	Uint32							GetCharacterIdAtPos(Vector2df pos);
+	Uint32							GetCharacterIdAtPos(vector3df pos);
 
     // Creates:
     void							SpawnPlayerCharacter(Uint32 playerID);
-    void							CreateProjectile(ProjectileType type, int ownerPlayerID, Vector2df setPos, Vector2df setHeading);
-    void							CreateExplosion(int ownerPlayerID, Vector2df setPos);
+    void							CreateProjectile(ProjectileType type, int ownerPlayerID, vector3df setPos, vector3df setHeading);
+    void							CreateExplosion(int ownerPlayerID, vector3df setPos);
 
     // Accessors:
-    bool							CheckCollisionWithLevel(Vector2df atPos) const;
-    bool							CheckCollisionWithChars(Vector2df atPos) const;
-    bool							IsPosSolid(Vector2df atPos) const;
-    bool							IsPosGravityWell(Vector2df atPos) const;
-    Vector2df						GetPosGravity(Vector2df atPos) const;
-    Vector2df						GetClosestCharPos(Vector2df atPos) const;
+    bool							CheckCollisionWithLevel(vector3df atPos) const;
+    bool							CheckCollisionWithChars(vector3df atPos) const;
+    bool							IsPosSolid(vector3df atPos) const;
+    vector3df						GetClosestCharPos(vector3df atPos) const;
 	bool							GetExit() const;
 
 protected:
@@ -81,19 +78,11 @@ protected:
     void							UpdateAllEntities(float timeDelta);
     void							UpdateRespawn(float timeDelta);
 
-    // Draw subroutines:
-    void							DrawAllEntities(Vector2df camPos);
-    void							DrawMap(Vector2df camPos);
-
 	// Entity subroutines:
 	void							SetProjectileType(Uint32 id, ProjectileType setType);
 
 	// Text IO methods:
-    void							InputChatMessage();
-    void							InputCharToChatMessage();
     void							AddMessagetoChat(std::string msg);
-    void							DrawChatLog();
-    void							DrawChatMessage();
 
     // Game data members:
     std::map<Uint32, EntityBase*>		entities;
@@ -101,23 +90,24 @@ protected:
     std::map<Uint32, PlayerCharacter*>	nonPlayerCharacters;
     std::map<Uint32, PlayerCharacter*>	characters;
     std::map<Uint32, ProjectileBase*> 	projectiles;
-    Map*							gameMap;
-	Event*							events[NUM_OF_EVENT_TYPES];
-	CharacterAction*				characterActions[NUM_OF_CHARACTER_ACTION_TYPES];
-	CharacterActionEffect*			characterActionEffects[NUM_OF_CHARACTER_ACTION_EFFECT_TYPES];
-	CharacterActionCondition*		characterActionConditions[NUM_OF_CHARACTER_ACTION_CONDITION_TYPES];
-	Player							players[MAX_PLAYERS];
-	Uint32							oldTime; // for timing game loop
-	bool							exit;
-	vector<CharacterType*>			characterTypes;
+    Map*								gameMap;
+	Event*								events[NUM_OF_EVENT_TYPES];
+	CharacterAction*					characterActions[NUM_OF_CHARACTER_ACTION_TYPES];
+	CharacterActionEffect*				characterActionEffects[NUM_OF_CHARACTER_ACTION_EFFECT_TYPES];
+	CharacterActionCondition*			characterActionConditions[NUM_OF_CHARACTER_ACTION_CONDITION_TYPES];
+	Player								players[MAX_PLAYERS];
+	Uint32								oldTime; // for timing game loop
+	bool								exit;
+	vector<CharacterType*>				characterTypes;
 
     // Text IO data members:
     bool 							isTypingChatMessage;
     std::string						chatMessage;
     Uint32							chatMessageCursorPos;
     vector<std::string>				chatLog; // The chatLog stores and displays messages received by the GameClient:
-	IGUIWindow*						window;
-	IGUIListBox*					chatWindow;
+	
+	// Interface:
+	BaseView*						view;
 
     // Network data members:
     Uint32							port;
