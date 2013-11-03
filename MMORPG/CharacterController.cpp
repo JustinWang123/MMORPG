@@ -2,16 +2,24 @@
 #include "SDLWrapper.h"
 #include "GameBase.h"
 
+CharacterController :: CharacterController()
+	:	moveHeading(0, 0, 0),
+		lookHeading(0, 0, 0),
+		doAction1(false),
+		doAction2(false),
+		doAction3(false),
+		hasChanged(false) {
+}
+
 CharacterController :: CharacterController(PlayerCharacter* setCharacter)
 	:	moveHeading(0, 0, 0),
-		aimHeading(0, 0, 0),
+		lookHeading(0, 0, 0),
 		doAction1(false),
 		doAction2(false),
 		doAction3(false),
 		hasChanged(false),
 		character(setCharacter),
 		game(setCharacter->Game()) {
-
 }
 
 bool CharacterController :: HasChanged() {
@@ -21,11 +29,12 @@ bool CharacterController :: HasChanged() {
 }
 
 void CharacterController :: Update() {
+	character->SetMoveHeading(moveHeading);
 }
 
 void CharacterController :: SetState(CharacterController* setState) {
 	moveHeading = setState->MoveHeading();
-	aimHeading = setState->AimHeading();
+	lookHeading = setState->LookHeading();
 	doAction1 = setState->DoAction1();
 	doAction2 = setState->DoAction2();
 	doAction3 = setState->DoAction3();
@@ -35,8 +44,8 @@ vector3df CharacterController :: MoveHeading() const {
 	return moveHeading;
 }
 
-vector3df CharacterController :: AimHeading() const {
-	return aimHeading;
+vector3df CharacterController :: LookHeading() const {
+	return lookHeading;
 }
 
 bool CharacterController :: DoAction1() const {

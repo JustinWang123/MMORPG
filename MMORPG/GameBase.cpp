@@ -8,17 +8,6 @@
 using namespace std;
 
 
-#define FOR_PC_IN_PLAYER_CHARACTERS PlayerCharacter* PC = playerCharacters.begin()->second; \
-for(std::map<Uint32, PlayerCharacter*>::iterator it = playerCharacters.begin(); it != playerCharacters.end(); ++it)
-
-#define FOR_PROJ_IN_PROJECTILES ProjectileBase* PROJ = projectiles.begin()->second; \
-for(std::map<Uint32, ProjectileBase*>::const_iterator it = projectiles.begin(); it != projectiles.end();  ++it)
-
-#define FOR_ENTITY_IN_ENTITIES EntityBase* ENTITY = entities.begin()->second; \
-for(std::map<Uint32, EntityBase*>::iterator it = entities.begin(); it != entities.end(); ++it)
-
-#define FOR_CHAR_IN_CHARACTERS PlayerCharacter* CHAR = characters.begin()->second; \
-for(std::map<Uint32, PlayerCharacter*>::const_iterator it = characters.begin(); it != characters.end();  ++it)
 
 
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +15,7 @@ GameBase :: GameBase() {
 	// Allocate a vector of packets for GameClient messages
     packets = SDLNet_AllocPacketV(4, PACKET_PACKETSIZE);
 
-    nextPacketTime = SDL_GetTicks();
+    nextPacketTime = device->getTimer()->getTime();
 
     events[DO_NOTHING] = new DoNothingEvent(this);
     events[BULLET_HIT_CHAR] = new BulletHitCharEvent(this);
@@ -73,7 +62,6 @@ GameBase :: GameBase() {
 	Uint32 id = 0;
     for(Uint32 i = 0; i < MAX_PLAYERS; i++) {
     	playerCharacters[id] = new PlayerCharacter(id, this, characterTypes[0]);
-    	playerCharacters[id]->SetController(new CharacterController(playerCharacters[id]));
 		entities[id] = playerCharacters[id];
 		characters[id] = playerCharacters[id];
         id++;
@@ -84,7 +72,6 @@ GameBase :: GameBase() {
     // Init all npcs:
     for(Uint32 i = 0; i < MAX_NPCS; i++) {
     	nonPlayerCharacters[id] = new PlayerCharacter(id, this, characterTypes[1]);
-    	nonPlayerCharacters[id]->SetController(new CharacterController(nonPlayerCharacters[id]));
 		entities[id] = nonPlayerCharacters[id];
 		characters[id] = nonPlayerCharacters[id];
 
@@ -103,7 +90,7 @@ GameBase :: GameBase() {
 
     gameMap = new Map(vector3df(4, 4, 4), this);
 
-    oldTime = SDL_GetTicks();
+    oldTime = device->getTimer()->getTime();
 	view = 0;
 
 } // ----------------------------------------------------------------------------------------------
@@ -157,8 +144,8 @@ GameBase :: ~GameBase() {
 
 // ------------------------------------------------------------------------------------------------
 void GameBase :: Update() {
-    float timeDelta = (SDL_GetTicks() - oldTime) / 20.0f;
-    oldTime = SDL_GetTicks();
+    float timeDelta = (device->getTimer()->getTime() - oldTime) / 20.0f;
+    oldTime = device->getTimer()->getTime();
 
 	if(receiver->GUIButtonClicked(GAME_USER_INTERFACE_QUIT_BUTTON)) {
 		quit = true;
@@ -502,9 +489,9 @@ void GameBase :: UpdateRespawn(float timeDelta) {
 		PC = it->second;
         if(PC->IsActive() && PC->IsDead()) {
             // If the player just died:
-            if(!PC->GetRespawnMe()) {
+            if(!PC->RespawnMe()) {
                 PC->SetRespawnMe(true);
-                PC->SetRespawnTime(SDL_GetTicks() + RESPAWN_DELAY); // FIXTHIS timing? 
+                PC->SetRespawnTime(device->getTimer()->getTime() + RESPAWN_DELAY); // FIXTHIS timing? 
 
                 // Add point to his killer:
                 if(PC->AttackerId() < MAX_PLAYERS) {
@@ -513,7 +500,7 @@ void GameBase :: UpdateRespawn(float timeDelta) {
                 //SendKillMessageToAll(players[i].pc->GetKillerId(), i); FIXTHIS
             }
             // If the player is already dead and is ready to respawn:
-            else if(SDL_GetTicks() > PC->GetRespawnTime()) {
+            else if(device->getTimer()->getTime() > PC->RespawnTime()) {
                 PC->SetRespawnMe(false);
                 SpawnPlayerCharacter(PC->Id());
             }
@@ -545,6 +532,20 @@ bool GameBase :: CheckCollisionWithChars(vector3df atPos) const {
     return false;
 } // ----------------------------------------------------------------------------------------------
 
+
+
+
+bool GameBase :: IsSolid(vector3df start, vector3df end, Uint32 bitMask) {
+	line3d<f32> ray;
+	vector3df intersection;
+	triangle3df hitTriangle;
+	ISceneNode* scene_node;
+	ray.start = start;
+	ray.end = 	end;
+	ISceneNode* node = collisionManager->getSceneNodeAndCollisionPointFromRay(ray, intersection, hitTriangle, bitMask, 0);
+
+	return node;
+}
 
 
 

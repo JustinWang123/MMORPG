@@ -43,17 +43,17 @@ public:
     void					AddHealth(Uint32 amount);
     void					SetRespawnMe(bool b);
     void					SetRespawnTime(Uint32 time);
-	void					SetController(CharacterController* newController);
-	void					SetControllerState(CharacterController* newState);
 	void					SetTargetId(Uint32 setId);
 	void					AddActionDelay(Uint32 amount);
+	void					SetMoveHeading(vector3df setMoveHeading);
+	void					SetLookHeading(vector3df setLookHeading);
 
     // Accessors:
     virtual bool			IsSolid(vector3df atPos) const;
-    bool					GetRespawnMe() const;
-    Uint32					GetRespawnTime() const;
-    CharacterController*	GetController() const;
+    bool					RespawnMe() const;
+    Uint32					RespawnTime() const;
     Uint32					TargetId() const;
+	vector3df				LookHeading() const;
 
 protected:
     vector3df				Heading() const;
@@ -66,25 +66,25 @@ protected:
     void					UpdateAttack(float timeDelta);
     void					SelectTarget(vector3df camPos);
 
-	CharacterType*			type;
-	CharacterController*	controller;
-	IMeshSceneNode*			sceneNode;
+	CharacterType*				type;
+	IMeshSceneNode*				sceneNode;
 
     // Movement data members:
-    vector3df				vel;
-    float   				acc;
-    float					maxSpeed;
-
+    vector3df					vel;
+    float   					acc;
+    float						maxSpeed;
+	vector3df					moveHeading;
+	vector3df					lookHeading;
 
     // Game data members:
-    float 					attackDelay;
-    //std::queue<QueuedAction> actionQueue;
-    bool					isActive;
-    Uint32					respawnTime;
-    bool					respawnMe;
-    Uint32                  targetId;
+    float 						attackDelay;
+    //std::queue<QueuedAction>	actionQueue;
+    bool						isActive;
+    Uint32						respawnTime;
+    bool						respawnMe;
+    Uint32						targetId;
 
     // The game that the character belongs to:
-    GameBase* 				game;
+    GameBase* 					game;
 };
 #endif

@@ -14,11 +14,11 @@ PlayerCharacter :: PlayerCharacter(Uint32 setId, GameBase* setGame, CharacterTyp
         vel(0, 0, 0),
         acc(setType->acc),
         maxSpeed(setType->maxSpeed),
+		lookHeading(1, 0, 0),
 		attackDelay(0),
 		targetId(INVALID_ID) {
 	type = setType;
     SetHealth(type->maxHealth);
-	controller = 0;
 	sceneNode = sceneManager->addCubeSceneNode(1.0f, 0, -1, vector3df(0,0,0));
 	sceneNode->setMaterialFlag(EMF_LIGHTING, true);
 } // ----------------------------------------------------------------------------------------------
@@ -56,8 +56,8 @@ void PlayerCharacter :: Update(float timeDelta) {
         UpdatePosition(timeDelta);
         UpdateFriction(timeDelta);
         UpdateAttack(timeDelta);
-		controller->Update();
 		sceneNode->setPosition(Pos());
+		sceneNode->setRotation(lookHeading);
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -92,21 +92,24 @@ void PlayerCharacter :: AddActionDelay(Uint32 amount) {
 
 
 // ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: UpdateVelocity(float timeDelta) {
-    // Apply acceleration to velocity based on key states:
-    if(controller->MoveHeading().Z < 0) {
-        vel.Z -= acc * timeDelta;
-    }
-    else if(controller->MoveHeading().Z > 0) {
-        vel.Z += acc * timeDelta;
-    }
+void PlayerCharacter :: SetMoveHeading(vector3df setMoveHeading) {
+	moveHeading = setMoveHeading;
+} // ----------------------------------------------------------------------------------------------
 
-    if(controller->MoveHeading().X < 0) {
-        vel.X -= acc * timeDelta;
-    }
-    else if(controller->MoveHeading().X > 0) {
-        vel.X += acc * timeDelta;
-    }
+
+
+
+// ------------------------------------------------------------------------------------------------
+void PlayerCharacter :: SetLookHeading(vector3df setLookHeading) {
+	lookHeading = setLookHeading;
+} // ----------------------------------------------------------------------------------------------
+
+
+
+
+// ------------------------------------------------------------------------------------------------
+void PlayerCharacter :: UpdateVelocity(float timeDelta) {
+	vel += moveHeading * acc * timeDelta;
 
     // Cap the velocity at the maximum speed:
     if(vel.getLength()  > maxSpeed) {
@@ -120,58 +123,59 @@ void PlayerCharacter :: UpdateVelocity(float timeDelta) {
 
 // ------------------------------------------------------------------------------------------------
 void PlayerCharacter :: UpdatePosition(float timeDelta) {
-	/*
-    float charTop = Pos().y - type->height / 2;
-    float charBottem = Pos().y + type->height / 2;
-    float charLeft = Pos().x - type->width / 2;
-    float charRight = Pos().x + type->width / 2;
+	
+	float sizeX;
+	float sizeZ;
+
+	if(vel.X > 0) {
+		sizeX = 0.2;
+	}
+	else if(vel.X < 0) {
+		sizeX = -0.2;
+	}
+	else
+		sizeX = 0;
+
+	if(vel.Z > 0) {
+		sizeZ = 0.2;
+	}
+	else if(vel.Z < 0) {
+		sizeZ = -0.2;
+	}
+	else {
+		sizeZ = 0;
+	}
+
 	vector3df newPos = Pos();
 
-    // Handle velocity to the right:
-    if(vel.X > 0) {
-        if(!Game()->CheckCollisionWithLevel( vector3df(charRight + vel.X * timeDelta, charTop + 2))
-		&& !Game()->CheckCollisionWithLevel( vector3df(charRight + vel.X * timeDelta, charBottem - 2))) {
+	// position along the x-axis:
+	if(!game->IsSolid(	Pos() + vector3df(sizeX, 0.0f,  0.1),
+						Pos() + vector3df(sizeX, 0.0f,  0.1) + (vel.X * timeDelta),
+						0)
+	&& !game->IsSolid(	Pos() + vector3df(sizeX, 0.0f, -0.1),
+						Pos() + vector3df(sizeX, 0.0f, -0.1) + (vel.X * timeDelta),
+						0)) {
 
-            newPos.x += vel.X * timeDelta;
-        }
-        else {
-            vel.X = 0;
-        }
-    }
-    // Handle velocity to the left:
-    else if(vel.X < 0) {
-        if(!Game()->CheckCollisionWithLevel(vector3df(charLeft + vel.X * timeDelta, charTop + 2))
-		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + vel.X * timeDelta, charBottem - 2))) {
-            newPos.x += vel.X * timeDelta;
-        }
-        else {
-            vel.X = 0;
-        }
-    }
+		newPos.X += vel.X * timeDelta;
+	}
+	else {
+		vel.X = 0;
+	}
 
-    // Handle velocity down:
-    if(vel.Z > 0) {
-        if(!Game()->CheckCollisionWithLevel(vector3df(charRight - 2, charBottem + vel.Z * timeDelta))
-		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + 2, charBottem + vel.Z * timeDelta))) {
-            newPos.y += vel.Z * timeDelta;
-        }
-        else {
-            vel.Z = 0;
-        }
-    }
-    // Handle velocity up
-    else if(vel.Z < 0) {
-        if(!Game()->CheckCollisionWithLevel(vector3df(charRight - 2, charTop + vel.Z * timeDelta))
-		&& !Game()->CheckCollisionWithLevel(vector3df(charLeft + 2, charTop + vel.Z * timeDelta))) {
-            newPos.y += vel.Z;
-        }
-        else {
-            vel.Z = 0;
-        }
-    }
-	*/
-	vector3df newPos = Pos();
-	newPos += vel;
+	// position along the z-axis:
+	if(!game->IsSolid(	Pos() + vector3df(0.1, 0.0f,  sizeZ),
+						Pos() + vector3df(0.1, 0.0f,  sizeZ) + (vel.Z * timeDelta),
+						0)
+	&& !game->IsSolid(	Pos() + vector3df(-0.1, 0.0f, sizeZ),
+						Pos() + vector3df(-0.1, 0.0f, sizeZ) + (vel.Z * timeDelta),
+						0)) {
+
+		newPos.Z += vel.Z * timeDelta;
+	}
+	else {
+		vel.Z = 0;
+	}
+
     SetPos(newPos);
 } // ----------------------------------------------------------------------------------------------
 
@@ -202,7 +206,7 @@ void PlayerCharacter :: UpdateAttack(float timeDelta) {
 
 // ------------------------------------------------------------------------------------------------
 vector3df PlayerCharacter :: Heading() const {
-    return controller->MoveHeading();
+    return moveHeading;
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -248,7 +252,7 @@ void PlayerCharacter :: SetRespawnTime(Uint32 time) {
 
 
 // ------------------------------------------------------------------------------------------------
-bool PlayerCharacter :: GetRespawnMe() const {
+bool PlayerCharacter :: RespawnMe() const {
 	return respawnMe;
 } // ----------------------------------------------------------------------------------------------
 
@@ -256,7 +260,7 @@ bool PlayerCharacter :: GetRespawnMe() const {
 
 
 // ------------------------------------------------------------------------------------------------
-Uint32 PlayerCharacter :: GetRespawnTime() const {
+Uint32 PlayerCharacter :: RespawnTime() const {
 	return respawnTime;
 } // ----------------------------------------------------------------------------------------------
 
@@ -279,11 +283,10 @@ Uint32 PlayerCharacter :: WriteToPacket(Uint32 dataWritePos, Uint8 data[]) {
 
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_ID], &sendId,4 );
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSX], &sendPos.X, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSY], &sendPos.Y, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_POSZ], &sendPos.Z, 4);
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELX], &vel.X, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELY], &vel.Z, 4);
+    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_VELZ], &vel.Z, 4);
     memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_HEALTH], &sendHealth, 4);
-    memcpy(&data[dataWritePos + PACKET_WRITE_PLAYER_CONTROL_STATE], controller, sizeof(CharacterController));
 
     return PACKET_WRITE_PLAYER_LENGTH;
 } // ----------------------------------------------------------------------------------------------
@@ -294,18 +297,15 @@ Uint32 PlayerCharacter :: WriteToPacket(Uint32 dataWritePos, Uint8 data[]) {
 // ------------------------------------------------------------------------------------------------
 Uint32 PlayerCharacter :: ReadFromPacket(Uint32 dataReadPos, Uint8 data[]) {
 	vector3df readPos;
-    CharacterController readController(this);
     Uint32 readHealth;
 
     memcpy(&readPos.X, &data[dataReadPos + PACKET_WRITE_PLAYER_POSX], 4);
-    memcpy(&readPos.Y, &data[dataReadPos + PACKET_WRITE_PLAYER_POSY], 4);
+    memcpy(&readPos.Z, &data[dataReadPos + PACKET_WRITE_PLAYER_POSZ], 4);
     memcpy(&vel.X, &data[dataReadPos + PACKET_WRITE_PLAYER_VELX], 4);
-    memcpy(&vel.Z, &data[dataReadPos + PACKET_WRITE_PLAYER_VELY], 4);
+    memcpy(&vel.Z, &data[dataReadPos + PACKET_WRITE_PLAYER_VELZ], 4);
     memcpy(&readHealth, &data[dataReadPos + PACKET_WRITE_PLAYER_HEALTH], 4);
-    memcpy(&readController, &data[dataReadPos + PACKET_WRITE_PLAYER_CONTROL_STATE], sizeof(CharacterController));
 
 	SetPos(readPos);
-	SetControllerState(&readController);
 	SetHealth(readHealth);
     Activate();
     return PACKET_WRITE_PLAYER_LENGTH;
@@ -327,13 +327,6 @@ Uint32 PlayerCharacter :: ReadFromPacket(Uint32 dataReadPos, Uint8 data[]) {
 
 
 
-// ------------------------------------------------------------------------------------------------
-CharacterController* PlayerCharacter :: GetController() const {
-	return controller;
-} // ----------------------------------------------------------------------------------------------
-
-
-
 
 // ------------------------------------------------------------------------------------------------
  Uint32 PlayerCharacter :: TargetId() const {
@@ -343,20 +336,7 @@ CharacterController* PlayerCharacter :: GetController() const {
 
 
 
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: SetController(CharacterController* newController) {
-	if(controller != 0) {
-		delete controller;
-	}
-
-	controller = newController;
-} // ----------------------------------------------------------------------------------------------
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-void PlayerCharacter :: SetControllerState(CharacterController* newState) {
-	controller->SetState(newState);
-} // ----------------------------------------------------------------------------------------------
-
+ // ------------------------------------------------------------------------------------------------
+ vector3df PlayerCharacter :: LookHeading() const {
+ 	return lookHeading;
+ } // ----------------------------------------------------------------------------------------------

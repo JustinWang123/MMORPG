@@ -49,6 +49,7 @@
     <ClInclude Include="Irr_Wrapper.hpp" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="NullCharacterController.h" />
     <ClInclude Include="PacketProtocol.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCharacter.h" />

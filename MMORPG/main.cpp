@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         menu = new Menu();
     }
 
-    int startTime = SDL_GetTicks();
+    int startTime = device->getTimer()->getTime();
     int frameTime;
 
     while(device->run() && !quit)

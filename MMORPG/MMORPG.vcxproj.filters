@@ -31,10 +31,10 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Entity\Views">
+    <Filter Include="Views">
       <UniqueIdentifier>{9b13ca48-c08b-4159-b53a-793fe311484a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Entity\Controllers">
+    <Filter Include="Controllers">
       <UniqueIdentifier>{09623f54-14cd-49ea-a5f6-94f3e3cb9db6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -58,9 +58,6 @@
       <Filter>Entity\Character</Filter>
     </ClCompile>
     <ClCompile Include="CharacterActionEffect.cpp">
-      <Filter>Entity\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="EntityBase.cpp">
       <Filter>Entity\Character</Filter>
     </ClCompile>
     <ClCompile Include="GameBase.cpp">
@@ -91,13 +88,16 @@
       <Filter>Entity\Projectile</Filter>
     </ClCompile>
     <ClCompile Include="CharacterControllerClient.cpp">
-      <Filter>Entity\Controllers</Filter>
+      <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="CharacterController.cpp">
-      <Filter>Entity\Controllers</Filter>
+      <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="PlayerCharacterView.cpp">
-      <Filter>Entity\Views</Filter>
+      <Filter>Views</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityBase.cpp">
+      <Filter>Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,9 +120,6 @@
       <Filter>Entity\Character</Filter>
     </ClInclude>
     <ClInclude Include="CharacterActionEffect.h">
-      <Filter>Entity\Character</Filter>
-    </ClInclude>
-    <ClInclude Include="EntityBase.h">
       <Filter>Entity\Character</Filter>
     </ClInclude>
     <ClInclude Include="GameServer.h">
@@ -156,16 +153,22 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="CharacterControllerClient.h">
-      <Filter>Entity\Controllers</Filter>
+      <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="CharacterController.h">
-      <Filter>Entity\Controllers</Filter>
+      <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="BaseView.h">
-      <Filter>Entity\Views</Filter>
+      <Filter>Views</Filter>
     </ClInclude>
     <ClInclude Include="PlayerCharacterView.h">
-      <Filter>Entity\Views</Filter>
+      <Filter>Views</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityBase.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="NullCharacterController.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

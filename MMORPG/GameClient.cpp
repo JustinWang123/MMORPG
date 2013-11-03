@@ -5,6 +5,7 @@
 #include "PacketProtocol.h"
 #include "PlayerCharacterView.h"
 #include "CharacterControllerClient.h"
+#include "NullCharacterController.h"
 using namespace std;
 
 
@@ -53,12 +54,13 @@ GameClient :: GameClient() {
     myChannel = INVALID_CHANNEL;
     exit = false;
     myPc = 0;
+	myPcController = new NullCharacterController();
     localSequenceNum = 0;
     remoteSequenceNum = 0;
     remoteSequenceNumBitField = -1;
-    timeToSendNextControlState = SDL_GetTicks();
-    timeOfLastGameServerMessage = SDL_GetTicks();
-    nextPacketTime = SDL_GetTicks();
+    timeToSendNextControlState = device->getTimer()->getTime();
+    timeOfLastGameServerMessage = device->getTimer()->getTime();
+    nextPacketTime = device->getTimer()->getTime();
 } // ------------------------------------------------------------------------------------------------
 
 
@@ -93,11 +95,12 @@ void GameClient :: Update() {
     HandleMyPcControlState();
     GameBase::Update();
     UpdateGameServerConnection();
+	myPcController->Update();
 
     // Send network data:
-    if(isConnectedToGameServer && SDL_GetTicks() > nextPacketTime) {
+    if(isConnectedToGameServer && device->getTimer()->getTime() > nextPacketTime) {
         SendUpdateGameServer();
-        nextPacketTime = SDL_GetTicks() + PACKET_SEND_DELAY;
+        nextPacketTime = device->getTimer()->getTime() + PACKET_SEND_DELAY;
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -107,14 +110,14 @@ void GameClient :: Update() {
 // ------------------------------------------------------------------------------------------------
 void GameClient :: UpdateGameServerConnection() {
     // Keep attempting to connect to server:
-    if(!isConnectedToGameServer && SDL_GetTicks() > nextPacketTime) {
-        nextPacketTime = SDL_GetTicks() + RECONNECT_TO_SERVER_DELAY;
-        timeOfLastGameServerMessage = SDL_GetTicks();
+    if(!isConnectedToGameServer && device->getTimer()->getTime() > nextPacketTime) {
+        nextPacketTime = device->getTimer()->getTime() + RECONNECT_TO_SERVER_DELAY;
+        timeOfLastGameServerMessage = device->getTimer()->getTime();
         SendConnectionRequest(clientName);
     }
 
     // Determine if we have lost connection to server
-    if(isConnectedToGameServer && SDL_GetTicks() - timeOfLastGameServerMessage > SERVER_INACTIVITY_TIME) {
+    if(isConnectedToGameServer && device->getTimer()->getTime() - timeOfLastGameServerMessage > SERVER_INACTIVITY_TIME) {
         AddMessagetoChat("GameServer not responding...");
         isConnectedToGameServer = false;
     }
@@ -128,8 +131,8 @@ void GameClient :: UpdateGameServerConnection() {
 void GameClient :: HandleMyPcControlState() {
     if(myPc != 0) {
         // If enough time has passed then update the server with our controller's state.
-        if(myPc->GetController()->HasChanged() && SDL_GetTicks() > timeToSendNextControlState) {
-            timeToSendNextControlState = SDL_GetTicks() + MIN_SEND_CONTROL_STATE_TIME;
+		if(myPcController->HasChanged() && device->getTimer()->getTime() > timeToSendNextControlState) {
+            timeToSendNextControlState = device->getTimer()->getTime() + MIN_SEND_CONTROL_STATE_TIME;
             SendControllerState();
         }
     }
@@ -247,7 +250,7 @@ void GameClient :: ReceiveNetworkData() {
 
     // For each packet of data we need to look at the first word and determine what to do with it:
     while ( n-- > 0 ) {
-        timeOfLastGameServerMessage = SDL_GetTicks();
+        timeOfLastGameServerMessage = device->getTimer()->getTime();
 
         // Acknowledge packet sequence num:
         Uint32 packetSequenceNum;
@@ -350,14 +353,13 @@ void GameClient :: SendTextMessage(std::string msg) {
 
 
 // ------------------------------------------------------------------------------------------------
+// send myPc's control state to server
 void GameClient :: SendControllerState() {
     char data[PACKET_PLAYER_CONTROL_STATE_LENGTH];
 
-	CharacterController* sendController = myPc->GetController();
-
     memcpy(&data[0], &PACKET_PLAYER_CONTROL_STATE, 1);
     memcpy(&data[PACKET_PLAYER_CONTROL_STATE_SEQUENCE_NUM], &localSequenceNum, 4);
-    memcpy(&data[PACKET_PLAYER_CONTROL_STATE_STATE], sendController, sizeof(CharacterController));
+    memcpy(&data[PACKET_PLAYER_CONTROL_STATE_STATE], myPcController, sizeof(CharacterController));
 
     SendDataAsPacket(data, PACKET_PLAYER_CONTROL_STATE_LENGTH);
 } // ----------------------------------------------------------------------------------------------
@@ -435,15 +437,14 @@ void GameClient :: HandleConnectionAccepted(UDPpacket* packet) {
     // Get name:
     players[myChannel].name = clientName;
 
-    // Get pc:
-    myPc = GetPlayerCharacter(myChannel);
-	myPc->SetController(new CharacterControllerClient(myPc));
-	view = new PlayerCharacterView(this, myPc);
+	// Create pc, controller, view:
+    myPc =				GetPlayerCharacter(myChannel);
+	myPcController =	new CharacterControllerClient(myPc);
+	view =				new PlayerCharacterView(this, myPc);
 
     // Display a text message:
     AddMessagetoChat("You have established a conection with the server...");
     isConnectedToGameServer = true;
-
 } // ----------------------------------------------------------------------------------------------
 
 

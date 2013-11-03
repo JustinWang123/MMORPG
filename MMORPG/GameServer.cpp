@@ -6,6 +6,8 @@
 #include "PacketProtocol.h"
 #include "CharacterController.h"
 
+#define FOR_CONTROLLER_IN_CHARACTER_CONTROLLERS CharacterController* CONTROLLER = characterControllers.begin()->second; \
+for(std::map<Uint32, CharacterController*>::const_iterator it = characterControllers.begin(); it != characterControllers.end();  ++it)
 
 
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +27,7 @@ GameServer :: GameServer() {
         players[i].state = PLAYER_STATE_DISCONECTED;
     }
 
+	// Load server init data:
     std::ifstream serverFile ("Data/ServerInit.txt");
     assert(serverFile.is_open());
     std::string str;
@@ -37,6 +40,11 @@ GameServer :: GameServer() {
 
     numOfPlayers = 0;
     LoadMap(mapName.c_str());
+
+	// Create controllers for all characters:
+	FOR_CHAR_IN_CHARACTERS {
+		characterControllers[CHAR->Id()] = new CharacterController(CHAR);
+	}
 } // ----------------------------------------------------------------------------------------------
 
 
@@ -63,10 +71,14 @@ void GameServer :: Update() {
 
     GameBase::Update();
 
+	FOR_CONTROLLER_IN_CHARACTER_CONTROLLERS {
+		CONTROLLER->Update();
+	}
+
     // Send network data:
-    if(SDL_GetTicks() > nextPacketTime) {
+    if(device->getTimer()->getTime() > nextPacketTime) {
         SendWorldUpdateToAll();
-        nextPacketTime = SDL_GetTicks() + PACKET_SEND_DELAY;
+        nextPacketTime = device->getTimer()->getTime() + PACKET_SEND_DELAY;
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -320,17 +332,17 @@ void GameServer :: HandleMsg(UDPpacket* packet) {
 
 
 // ------------------------------------------------------------------------------------------------
+// received client control state in packet, save control state in clients CharacterController
 void GameServer :: HandleControlState(UDPpacket* packet) {
     int id = packet->channel;
 
     if(players[id].state == PLAYER_STATE_ACTIVE) {
         CharacterController readController(playerCharacters.at(id));
+
         memcpy(&readController, &packet->data[PACKET_PLAYER_CONTROL_STATE_STATE], sizeof(CharacterController));
 
-        GetPlayerCharacter(id)->SetControllerState(&readController);
+		characterControllers.at(id)->SetState(&readController);
     }
-
-
 } // ----------------------------------------------------------------------------------------------
 
 

@@ -6,6 +6,7 @@ class GameBase;
 
 class CharacterController {
 public:
+								CharacterController();
 								CharacterController(PlayerCharacter* setCharacter);
 	virtual 					~CharacterController(){}
 
@@ -15,7 +16,7 @@ public:
 
 	// Accessors:
 	vector3df 					MoveHeading() const;
-	vector3df 					AimHeading() const;
+	vector3df 					LookHeading() const;
 	bool						DoAction1() const;
 	bool						DoAction2() const;
 	bool						DoAction3() const;
@@ -23,7 +24,7 @@ public:
 
 protected:
 	vector3df 					moveHeading;
-	vector3df 					aimHeading;
+	vector3df 					lookHeading;
 	bool						doAction1;
 	bool						doAction2;
 	bool						doAction3;

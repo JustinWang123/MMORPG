@@ -33,7 +33,7 @@ PlayerCharacterView :: ~PlayerCharacterView() {
 // ------------------------------------------------------------------------------------------------
 void PlayerCharacterView :: Update() {
 	camera->setTarget(pc->Pos());
-	//camera->setPosition(vector3df(pc->Pos().x, 10, pc->Pos().y - 10));
+	camera->setPosition(vector3df(pc->Pos().X, 10, pc->Pos().Z - 10));
 } // ----------------------------------------------------------------------------------------------
 
 

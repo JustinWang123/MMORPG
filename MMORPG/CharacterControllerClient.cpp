@@ -9,6 +9,7 @@ CharacterControllerClient :: CharacterControllerClient(PlayerCharacter* setChara
 
 void CharacterControllerClient :: Update() {
 	vector3df setMoveHeading(0,0, 0);
+	vector3df setLookHeading = character->LookHeading();
 
 	if(receiver->KeyIsDown(KEY_KEY_W)) {
 		setMoveHeading.Z -= 1;
@@ -23,16 +24,22 @@ void CharacterControllerClient :: Update() {
 		setMoveHeading.X += 1;
 	}
 
+	if(receiver->KeyIsDown(KEY_KEY_Q)) {
+		setLookHeading.rotateXZBy(10);
+	}
+	if(receiver->KeyIsDown(KEY_KEY_E)) {
+		setLookHeading.rotateXZBy(-10);
+	}
+
 	moveHeading = setMoveHeading;
+	character->SetMoveHeading(setMoveHeading);
+
+	lookHeading = setLookHeading;
+	character->SetLookHeading(setLookHeading);
 
 	doAction1 = receiver->KeyIsDown(KEY_LBUTTON);
 	doAction2 = receiver->KeyIsDown(KEY_MBUTTON);
 	doAction3 = receiver->KeyIsDown(KEY_RBUTTON);
-
-	float length = sqrt( pow((float)receiver->MouseX() - GAME_SCREEN_WIDTH / 2,2) + pow((float)receiver->MouseY() - GAME_SCREEN_HEIGHT / 2,2));
-    float headingX = ((float) receiver->MouseX() - GAME_SCREEN_WIDTH / 2) / length;
-    float headingY = ((float) receiver->MouseY() - GAME_SCREEN_HEIGHT / 2) / length;
-    aimHeading = vector3df(headingX, 0, headingY);
 
 	if(receiver->KeyIsDown(KEY_LBUTTON)) {
 		//Uint32 targetId = game->GetCharacterIdAtPos(game->MouseWorldPos());

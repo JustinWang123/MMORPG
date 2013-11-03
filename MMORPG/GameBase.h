@@ -64,6 +64,7 @@ public:
     void							CreateExplosion(int ownerPlayerID, vector3df setPos);
 
     // Accessors:
+	bool							IsSolid(vector3df start, vector3df end, Uint32 bitMask);
     bool							CheckCollisionWithLevel(vector3df atPos) const;
     bool							CheckCollisionWithChars(vector3df atPos) const;
     bool							IsPosSolid(vector3df atPos) const;
@@ -123,4 +124,18 @@ protected:
     SDL_Surface*					smokeSurface;
     SDL_Surface* 					explosionSurface;
 };
+
+#define FOR_PC_IN_PLAYER_CHARACTERS PlayerCharacter* PC = playerCharacters.begin()->second; \
+for(std::map<Uint32, PlayerCharacter*>::iterator it = playerCharacters.begin(); it != playerCharacters.end(); ++it)
+
+#define FOR_PROJ_IN_PROJECTILES ProjectileBase* PROJ = projectiles.begin()->second; \
+for(std::map<Uint32, ProjectileBase*>::const_iterator it = projectiles.begin(); it != projectiles.end();  ++it)
+
+#define FOR_ENTITY_IN_ENTITIES EntityBase* ENTITY = entities.begin()->second; \
+for(std::map<Uint32, EntityBase*>::iterator it = entities.begin(); it != entities.end(); ++it)
+
+#define FOR_CHAR_IN_CHARACTERS PlayerCharacter* CHAR = characters.begin()->second; \
+for(std::map<Uint32, PlayerCharacter*>::const_iterator it = characters.begin(); it != characters.end();  ++it)
+
+
 #endif
