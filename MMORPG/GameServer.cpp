@@ -284,9 +284,6 @@ void GameServer :: HandleConnectionRequest(UDPpacket* packet) {
             AddMessagetoChat("New player added on channel " + ToString(channel) + "...");
             SendTextMessage(channel, MAX_PLAYERS, "Welcome to the server!");
             SendConnectionAccepted(channel);
-            SendLevelData(channel);
-            SendLevelData(channel);// FIXTHIS SRSLY?
-            SendLevelData(channel);
             SpawnPlayerCharacter(channel);
             break;
         }

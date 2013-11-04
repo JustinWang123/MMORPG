@@ -22,7 +22,6 @@ Menu* 		menu;
 GameServer* server;
 GameClient* gameClient;
 GameEditor*	gameEditor;
-ILightSceneNode *light;
 
 
 void		InitGameModeGameClient();
@@ -36,11 +35,9 @@ int main(int argc, char *argv[]) {
 	SDLNet_Init();
 
 	// Setup level:
-	IMeshSceneNode *origin = sceneManager->addCubeSceneNode(1.0f, 0, -1, vector3df(0,0,0));
-	camera->setPosition(vector3df(50, 50, 100));
-	camera->setTarget(vector3df(50, 0, 50));
-	light = sceneManager->addLightSceneNode(0, vector3df(50,50,50));
-
+	camera->setPosition(vector3df(0, 50, -50));
+	camera->setTarget(vector3df(0, 0, 0));
+	
 	// Join or Host from the command line:
     if(argc > 1 && strcmp(argv[1], "0") == 0) {
         InitGameModeGameServer();

@@ -6,7 +6,7 @@ Menu :: Menu() {
     choice = CHOICE_NONE;
 
 	// Setup GUI:
-	mainMenuWindow = GUI->addWindow(rect<s32>(600,0, 800,600), true, L"Main Menu", 0, GAME_USER_INTERFACE_WINDOW);
+	mainMenuWindow = GUI->addWindow(rect<s32>(1400,0, 1600,600), true, L"Main Menu", 0, GAME_USER_INTERFACE_WINDOW);
 	mainMenuWindow->setDraggable(false);
 	mainMenuWindow->getCloseButton()->setEnabled(false);
 	mainMenuWindow->getCloseButton()->setVisible(false);

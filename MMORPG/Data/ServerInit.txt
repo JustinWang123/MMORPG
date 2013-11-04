@@ -1,1 +1,0 @@
-MapName: Data/Map.txt

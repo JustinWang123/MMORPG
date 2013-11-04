@@ -42,8 +42,8 @@ GameBase :: GameBase() {
 	characterTypes.push_back(new CharacterType());
 	characterTypes[0]->attackDelay = 10;
 	characterTypes[0]->maxHealth = 100;
-	characterTypes[0]->acc = 0.4f;
-	characterTypes[0]->maxSpeed = 1.0f;
+	characterTypes[0]->acc = 0.04f;
+	characterTypes[0]->maxSpeed = 0.1f;
 	characterTypes[0]->friction = 0.8;
 	characterTypes[0]->width = 16;
 	characterTypes[0]->height = 16;
@@ -52,8 +52,8 @@ GameBase :: GameBase() {
 	characterTypes.push_back(new CharacterType());
 	characterTypes[1]->attackDelay = 10;
 	characterTypes[1]->maxHealth = 100;
-	characterTypes[1]->acc = 0.4f;
-	characterTypes[1]->maxSpeed = 1.0f;
+	characterTypes[1]->acc = 0.04f;
+	characterTypes[1]->maxSpeed = 0.1f;
 	characterTypes[1]->friction = 0.8;
 	characterTypes[1]->width = 16;
 	characterTypes[1]->height = 16;
@@ -64,6 +64,8 @@ GameBase :: GameBase() {
     	playerCharacters[id] = new PlayerCharacter(id, this, characterTypes[0]);
 		entities[id] = playerCharacters[id];
 		characters[id] = playerCharacters[id];
+		sceneNodeToIdMap[playerCharacters[id]->SceneNode()] = id;
+
         id++;
     }
 
@@ -74,10 +76,11 @@ GameBase :: GameBase() {
     	nonPlayerCharacters[id] = new PlayerCharacter(id, this, characterTypes[1]);
 		entities[id] = nonPlayerCharacters[id];
 		characters[id] = nonPlayerCharacters[id];
+		sceneNodeToIdMap[nonPlayerCharacters[id]->SceneNode()] = id;
 
 		// Temp initing stuff:
 		nonPlayerCharacters[id]->Activate();
-		nonPlayerCharacters[id]->SetPos(vector3df(i * 10, 0, 128));
+		nonPlayerCharacters[id]->SetPos(vector3df(i * 1, 0, 2));
         id++;
     }
 
@@ -345,26 +348,9 @@ void GameBase :: DamageCharsAtPos(Uint32 attackerId, Uint32 damage, vector3df at
 
 
 
- PlayerCharacter* GameBase :: GetCharacter(Uint32 atId) {
-    return characters.at(atId);
-}
-
-
-Uint32 GameBase :: GetCharacterIdAtPos(vector3df pos) {
-	FOR_CHAR_IN_CHARACTERS {
-		CHAR = it->second;
-		if(CHAR->IsSolid(pos)) {
-			return CHAR->Id();
-		}
-	}
-
-	return INVALID_ID;
-}
-
-
 // ------------------------------------------------------------------------------------------------
 void GameBase :: SpawnPlayerCharacter(Uint32 playerID) {
-    vector3df spawnPos = vector3df(50, 0, 50);
+    vector3df spawnPos = vector3df(0, 0, 0);
     playerCharacters[playerID]->Spawn(spawnPos);
 } // ----------------------------------------------------------------------------------------------
 
@@ -535,6 +521,7 @@ bool GameBase :: CheckCollisionWithChars(vector3df atPos) const {
 
 
 
+// ------------------------------------------------------------------------------------------------
 bool GameBase :: IsSolid(vector3df start, vector3df end, Uint32 bitMask) {
 	line3d<f32> ray;
 	vector3df intersection;
@@ -545,7 +532,66 @@ bool GameBase :: IsSolid(vector3df start, vector3df end, Uint32 bitMask) {
 	ISceneNode* node = collisionManager->getSceneNodeAndCollisionPointFromRay(ray, intersection, hitTriangle, bitMask, 0);
 
 	return node;
-}
+} // ----------------------------------------------------------------------------------------------
+
+
+
+
+// ------------------------------------------------------------------------------------------------
+ PlayerCharacter* GameBase :: GetCharacter(Uint32 atId) {
+    return characters.at(atId);
+} // ----------------------------------------------------------------------------------------------
+
+
+
+
+// ------------------------------------------------------------------------------------------------
+Uint32 GameBase :: GetCharacterIdAtPos(vector3df pos) {
+	FOR_CHAR_IN_CHARACTERS {
+		CHAR = it->second;
+		if(CHAR->IsSolid(pos)) {
+			return CHAR->Id();
+		}
+	}
+
+	return INVALID_ID;
+} // ----------------------------------------------------------------------------------------------
+
+
+
+
+// ------------------------------------------------------------------------------------------------
+Uint32 GameBase :: EntityIdHitByRay(vector3df start, vector3df end, Uint32 bitMask) {
+	line3d<f32> ray;
+	vector3df intersection;
+	triangle3df hitTriangle;
+	ISceneNode* scene_node;
+	ray.start = start;
+	ray.end = 	end;
+	ISceneNode* node = collisionManager->getSceneNodeAndCollisionPointFromRay(ray, intersection, hitTriangle, bitMask, 0);
+	
+	if(node) {
+		return sceneNodeToIdMap.at(node);
+	}
+	else {
+		return INVALID_ID;
+	}
+} // ----------------------------------------------------------------------------------------------
+
+
+
+// ------------------------------------------------------------------------------------------------
+Uint32 GameBase :: EntityIdUnderScreenPos(vector2di screenPos, Uint32 bitMask) {
+	ISceneNode* node = collisionManager->getSceneNodeFromScreenCoordinatesBB(screenPos, bitMask);
+
+	if(node) {
+		return sceneNodeToIdMap.at(node);
+	}
+	else {
+		return INVALID_ID;
+	}
+} // ----------------------------------------------------------------------------------------------
+
 
 
 

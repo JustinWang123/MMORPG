@@ -19,7 +19,10 @@ PlayerCharacter :: PlayerCharacter(Uint32 setId, GameBase* setGame, CharacterTyp
 		targetId(INVALID_ID) {
 	type = setType;
     SetHealth(type->maxHealth);
-	sceneNode = sceneManager->addCubeSceneNode(1.0f, 0, -1, vector3df(0,0,0));
+
+	// Load and setup sceneNode:
+	sceneNode = sceneManager->addMeshSceneNode(sceneManager->getMesh("Models/Character.3ds"), 0, COLLISION_BITMASK_CHARACTER);
+	sceneNode->setMaterialFlag(EMF_NORMALIZE_NORMALS, true);
 	sceneNode->setMaterialFlag(EMF_LIGHTING, true);
 } // ----------------------------------------------------------------------------------------------
 
@@ -57,7 +60,7 @@ void PlayerCharacter :: Update(float timeDelta) {
         UpdateFriction(timeDelta);
         UpdateAttack(timeDelta);
 		sceneNode->setPosition(Pos());
-		sceneNode->setRotation(lookHeading);
+		sceneNode->setRotation(vector3df(0, -lookHeading.getSphericalCoordinateAngles().Y, 0));
     }
 } // ----------------------------------------------------------------------------------------------
 
@@ -340,3 +343,11 @@ Uint32 PlayerCharacter :: ReadFromPacket(Uint32 dataReadPos, Uint8 data[]) {
  vector3df PlayerCharacter :: LookHeading() const {
  	return lookHeading;
  } // ----------------------------------------------------------------------------------------------
+
+
+
+
+  // ------------------------------------------------------------------------------------------------
+ ISceneNode* PlayerCharacter :: SceneNode() const {
+	 return sceneNode;
+ }  // ----------------------------------------------------------------------------------------------

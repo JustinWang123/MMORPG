@@ -21,6 +21,7 @@ private:
 	PlayerCharacter*		pc;
 	IGUIWindow*				window;
 	IGUIListBox*			chatWindow;
+	ISceneNode*				targetRingSceneNode;
 };
 
 #endif

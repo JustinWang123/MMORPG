@@ -19,7 +19,7 @@ void  IrrInit() {
 	SIrrlichtCreationParameters parameters;
 	parameters.AntiAlias = 2;
 	parameters.DriverType = EDT_OPENGL;
-	parameters.WindowSize = dimension2d<u32>(800, 600);
+	parameters.WindowSize = dimension2d<u32>(1600, 1000);
 	parameters.Bits = 32;
 	parameters.Fullscreen = false;
 	parameters.Stencilbuffer = false;
@@ -44,7 +44,7 @@ void  IrrInit() {
 
 	// Setup camera:
 	camera = sceneManager->addCameraSceneNode();
-
+	camera->setID(1);
 	// Load the font:
 }
 

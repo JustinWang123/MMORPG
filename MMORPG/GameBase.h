@@ -24,7 +24,7 @@ const Uint32 						GAME_SCREEN_Y = 4;
 const Uint32 						GAME_SCREEN_WIDTH = 576;
 const Uint32 						GAME_SCREEN_HEIGHT = 592;
 const Uint32 						INVALID_CHANNEL = MAX_PLAYERS;
-const Uint32						INVALID_ID = -1;
+const Uint32						INVALID_ID = -5;
 
 const Uint32 						CHAT_LOG_NUM_LINES_VISIBLE = 20;
 const Uint32 						CHAT_LOG_LINE_LENGTH = 30;
@@ -32,6 +32,10 @@ const Uint32 						CHAT_LOG_POS_X = 590;
 const Uint32 						CHAT_LOG_POS_Y = 156;
 const Uint32 						CHAT_MESSAGE_POS_X = 600;
 const Uint32 						CHAT_MESSAGE_POS_Y = 156;
+
+const Uint32						COLLISION_BITMASK_NONE = 1;
+const Uint32						COLLISION_BITMASK_CHARACTER = 2;
+const Uint32						COLLISION_BITMASK_LEVEL = 4;
 
 class GameBase {
 public:
@@ -55,9 +59,7 @@ public:
     // Events:
     void							DamageCharsInCircle(Uint32 attackerID, Uint32 damage, vector3df centerPos, float radius);
     void							DamageCharsAtPos(Uint32 attackerID, Uint32 damage, vector3df atPos);
-    PlayerCharacter*                GetCharacter(Uint32 id);
-	Uint32							GetCharacterIdAtPos(vector3df pos);
-
+   
     // Creates:
     void							SpawnPlayerCharacter(Uint32 playerID);
     void							CreateProjectile(ProjectileType type, int ownerPlayerID, vector3df setPos, vector3df setHeading);
@@ -65,6 +67,11 @@ public:
 
     // Accessors:
 	bool							IsSolid(vector3df start, vector3df end, Uint32 bitMask);
+	PlayerCharacter*                GetCharacter(Uint32 id);
+	Uint32							GetCharacterIdAtPos(vector3df pos);
+	Uint32							EntityIdHitByRay(vector3df start, vector3df end, Uint32 bitMask);
+	Uint32							EntityIdUnderScreenPos(vector2di screenPos, Uint32 bitMask);
+
     bool							CheckCollisionWithLevel(vector3df atPos) const;
     bool							CheckCollisionWithChars(vector3df atPos) const;
     bool							IsPosSolid(vector3df atPos) const;
@@ -91,6 +98,7 @@ protected:
     std::map<Uint32, PlayerCharacter*>	nonPlayerCharacters;
     std::map<Uint32, PlayerCharacter*>	characters;
     std::map<Uint32, ProjectileBase*> 	projectiles;
+	std::map<ISceneNode*, Uint32>		sceneNodeToIdMap;
     Map*								gameMap;
 	Event*								events[NUM_OF_EVENT_TYPES];
 	CharacterAction*					characterActions[NUM_OF_CHARACTER_ACTION_TYPES];

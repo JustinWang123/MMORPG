@@ -14,6 +14,11 @@ public:
 	virtual void				SetState(CharacterController* setState){}
 
 private:
+	void						UpdateMovement();
+	void						UpdateLookHeading();
+	void						UpdateActions();
+	void						UpdateTargetSelect();
+
 	GameClient*					game;
 };
 

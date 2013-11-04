@@ -54,6 +54,7 @@ public:
     Uint32					RespawnTime() const;
     Uint32					TargetId() const;
 	vector3df				LookHeading() const;
+	ISceneNode*				SceneNode() const;
 
 protected:
     vector3df				Heading() const;
@@ -66,8 +67,8 @@ protected:
     void					UpdateAttack(float timeDelta);
     void					SelectTarget(vector3df camPos);
 
-	CharacterType*				type;
-	IMeshSceneNode*				sceneNode;
+	CharacterType*			type;
+	ISceneNode*				sceneNode;
 
     // Movement data members:
     vector3df					vel;

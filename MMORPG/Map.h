@@ -26,7 +26,8 @@ public:
 
 protected:
     GameBase* 				game;
-	IMeshSceneNode*			level;
+	ISceneNode*				level;
+	ILightSceneNode*		light;
 };
 
 #endif
